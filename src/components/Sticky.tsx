@@ -1,5 +1,5 @@
 import { CARD_META } from '../game/cardMeta'
-import type { Card } from '../game/types'
+import type { Card, CardKind } from '../game/types'
 
 interface StickyProps {
   card: Card
@@ -10,6 +10,10 @@ interface StickyProps {
   inHand?: boolean
   className?: string
   style?: React.CSSProperties
+  /** i ボタンで種別の定義を引けるようにする（ドラッグしない局面でのみ渡す） */
+  onInfo?: (kind: CardKind) => void
+  /** onInfo があっても、この値が false の間は i を出さない（ドラッグ中など） */
+  showInfo?: boolean
 }
 
 /**
@@ -24,8 +28,11 @@ export function Sticky({
   inHand,
   className = '',
   style,
+  onInfo,
+  showInfo = false,
 }: StickyProps) {
   const meta = CARD_META[card.kind]
+  const withInfo = showMeta && showInfo && onInfo != null
   return (
     <div
       className={`sticky ${small ? 'small' : ''} ${dragging ? 'dragging' : ''} ${inHand ? 'in-hand' : ''} ${className}`}
@@ -39,6 +46,22 @@ export function Sticky({
             {meta.icon}
           </span>
           {meta.labelJa}
+          {withInfo && (
+            <button
+              type="button"
+              className="sticky-info"
+              style={{ color: meta.ink }}
+              // dnd-kit のドラッグ sensor へ伝播させない（i タップ≠ドラッグ開始）
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={(e) => {
+                e.stopPropagation()
+                onInfo(card.kind)
+              }}
+              aria-label={`${meta.labelJa}の意味`}
+            >
+              ⓘ
+            </button>
+          )}
         </span>
       )}
       <span className="text">{card.labelJa}</span>

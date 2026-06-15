@@ -9,7 +9,7 @@ export function CompleteScreen() {
   const vocabCount = state.progress.unlockedVocab.length
 
   function share() {
-    const text = `StormQuest 第1章「ピザデリバリーの注文業務」をクリア！ EventStormingの記法を ${vocabCount}語マスター・${stars}/${maxStars}★ 🌩️`
+    const text = `StormQuest 全章クリア！ ピザデリバリーとタスク管理で EventStorming の記法（集約・不変条件まで）を ${vocabCount}語マスター・${stars}/${maxStars}★ 🌩️`
     const url = 'https://rikuto125.github.io/sample/'
     if (navigator.share) {
       navigator.share({ title: 'StormQuest', text, url }).catch(() => {})
@@ -24,10 +24,11 @@ export function CompleteScreen() {
   return (
     <div className="screen complete screen-dark">
       <div className="finish-emoji">🎉</div>
-      <div className="result-title">第1章 完全制覇！</div>
+      <div className="result-title">全章 完全制覇！</div>
       <p className="finish-lead">
-        ドメインイベント・コマンド・アクター・ポリシー・外部システム・リードモデル——
-        EventStormingの記法と語彙を、手が覚えました。
+        ドメインイベント・コマンド・アクター・ポリシー・外部システム・リードモデル、
+        そして<strong>集約と不変条件</strong>——
+        EventStormingとDDDをつなぐ記法と語彙を、手が覚えました。
       </p>
 
       <div className="finish-stats">
@@ -47,11 +48,11 @@ export function CompleteScreen() {
 
       <div className="next-chapter">
         <div className="nc-label">NEXT CHAPTER（予告）</div>
-        <div className="nc-title">第2章 — ⏰ サブスク課金ドメイン</div>
+        <div className="nc-title">第3章 — ⏰ サブスク課金ドメイン</div>
         <div className="nc-def">
           時間で発火するポリシー（Scheduled Policy）が主役。
-          「更新日が来たら課金する」をどう描く？ ピザでは扱えなかった
-          <strong>時間トリガー</strong>と<strong>集約の不変条件</strong>へ。
+          「更新日が来たら課金する」をどう描く？ 集約をまたぐ
+          <strong>整合性</strong>と<strong>時間トリガー</strong>へ。
         </div>
       </div>
 

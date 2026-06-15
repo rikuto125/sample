@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import type { Card, TriggerStage } from '../game/types'
+import type { Card, CardKind, TriggerStage } from '../game/types'
 import { checkTriggers, isValidLink } from '../game/engine'
 import { CARD_META } from '../game/cardMeta'
 import { Sticky } from './Sticky'
@@ -9,6 +9,8 @@ interface Props {
   stage: TriggerStage
   onCorrect: (mistakes: number, usedHint: boolean) => void
   onMistake: (reason: string) => void
+  /** 付箋の i ボタンで種別の定義を開く */
+  onInfo?: (kind: CardKind) => void
 }
 
 /**
@@ -16,7 +18,7 @@ interface Props {
  * 操作: トレイのトリガーをタップ選択 → コマンドのスロットをタップで接続。
  * （ドラッグより確実で、モバイル・キーボード・SR すべてで動く。デザイン仕様のタップ代替を主動線に）
  */
-export function TriggerMode({ stage, onCorrect, onMistake }: Props) {
+export function TriggerMode({ stage, onCorrect, onMistake, onInfo }: Props) {
   const trayCards = useMemo(() => shuffle(stage.triggers), [stage])
   const [selected, setSelected] = useState<Card | null>(null)
   const [links, setLinks] = useState<Record<string, string>>({})
@@ -84,7 +86,7 @@ export function TriggerMode({ stage, onCorrect, onMistake }: Props) {
               <span className="connector" aria-hidden>
                 →
               </span>
-              <Sticky card={cmd} />
+              <Sticky card={cmd} onInfo={onInfo} showInfo={onInfo != null} />
             </div>
           )
         })}
