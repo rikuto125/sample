@@ -1,4 +1,5 @@
 import type { CardKind } from './types'
+import { CARD_KIND_ORDER } from './cardMeta'
 import type {
   SandboxCard,
   SandboxStore,
@@ -177,4 +178,52 @@ export function exportWorkJson(work: SandboxWork): string {
     null,
     2,
   )
+}
+
+// ---- 内訳サマリ（Editor 内訳と Hub「付箋N」の単一の真実源） ----
+
+export interface WorkSummary {
+  /** 常に CARD_KIND_ORDER 順・全7種（0枚種別も含む）。 */
+  rows: { kind: CardKind; count: number }[]
+  /** rows の count 総和。cards.length を別途代入せず rows から合算する。 */
+  total: number
+}
+
+/**
+ * ワークの種別別枚数。Editor の内訳と Hub の合計が必ず一致するよう、
+ * 両画面はこの関数だけを使う（数え方の二重実装を作らない）。
+ */
+export function summarizeWork(work: SandboxWork): WorkSummary {
+  const counts = new Map<CardKind, number>(CARD_KIND_ORDER.map((k) => [k, 0]))
+  for (const c of work.cards) counts.set(c.kind, (counts.get(c.kind) ?? 0) + 1)
+  const rows = CARD_KIND_ORDER.map((kind) => ({
+    kind,
+    count: counts.get(kind) ?? 0,
+  }))
+  return { rows, total: rows.reduce((s, r) => s + r.count, 0) }
+}
+
+/**
+ * お手本ワークを、新しい id・時刻で自分のワークとして複製する。
+ * サンプル本体は不変。複製は in-progress で開始する。
+ */
+export function cloneSample(
+  store: SandboxStore,
+  sample: SandboxWork,
+  now: number,
+): { store: SandboxStore; id: string } {
+  const id = uid('work')
+  const work: SandboxWork = {
+    id,
+    title: sample.title.replace(/^【お手本】\s*/, ''),
+    domainDescription: sample.domainDescription,
+    status: 'in-progress',
+    createdAt: now,
+    updatedAt: now,
+    cards: sample.cards.map((c) => ({ ...c, id: uid('sc') })),
+  }
+  return {
+    store: { ...store, works: { ...store.works, [id]: work }, lastOpenedId: id },
+    id,
+  }
 }

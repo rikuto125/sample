@@ -1,22 +1,12 @@
 import { useState } from 'react'
 import type { CardKind } from '../game/types'
-import { CARD_META } from '../game/cardMeta'
+import { CARD_META, CARD_KIND_ORDER } from '../game/cardMeta'
 import { kindHint, tenseAdvice } from '../game/notation'
 import { Icon } from './Icon'
 
 interface SandboxPaletteProps {
   onAdd: (kind: CardKind, labelJa: string) => void
 }
-
-const KINDS: CardKind[] = [
-  'event',
-  'command',
-  'actor',
-  'policy',
-  'externalSystem',
-  'readModel',
-  'aggregate',
-]
 
 /**
  * 種別を選んでラベルを入力し付箋を足すパレット。
@@ -39,7 +29,7 @@ export function SandboxPalette({ onAdd }: SandboxPaletteProps) {
   return (
     <div className="sandbox-palette">
       <div className="sandbox-palette-kinds" role="group" aria-label="付箋の種別">
-        {KINDS.map((k) => {
+        {CARD_KIND_ORDER.map((k) => {
           const m = CARD_META[k]
           return (
             <button

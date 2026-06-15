@@ -49,7 +49,10 @@ design/          # デザイン・ゲーミフィケーション設計
 - ステージは「コンポーネント」でなく「データ」。ステージ追加 = データ追加で動くこと（エンジンを書き換えない）。
 - ステージデータを足したら、必ず妥当性検証テスト（validLinks の参照先実在チェック等）が緑であることを確認。
 - 用語の定義は `CONTEXT.md`（正）→ `src/game/glossary.ts`（コード内の写し）→ stages の `VocabEntry` の順で更新する。`VocabEntry.def` は手書きせず `refVocab()` で GLOSSARY から引く（二重管理を作らない）。
-- 個人ワーク（サンドボックス）モードは**採点系の別系統**（ADR 0002）。`src/game/sandbox*` / `notation.ts` / `Sandbox*.tsx` は `engine.ts`・`progress.ts` を import しない（`sandbox.test.ts` の境界テストで保証）。色は必ず `CARD_META[kind]` 由来（色選択 UI を作らない）。永続化は別キー `stormquest.sandbox`、成果物は version 不一致でも破棄しない。
+- 個人ワーク（サンドボックス）モードは**採点系の別系統**（ADR 0002）。`src/game/sandbox*` / `notation.ts` / `cardMeta.ts` / `Sandbox*.tsx` / `src/data/sampleWorks.ts` は `engine.ts`・`progress.ts` を import しない（`sandbox.test.ts` の境界テストで保証。新ファイルは sources 配列に追加すること）。色は必ず `CARD_META[kind]` 由来（色選択 UI を作らない）。永続化は別キー `stormquest.sandbox`、成果物は version 不一致でも破棄しない。
+  - キャンバスは固定ワールド（`sandboxView.ts` の `WORLD_W`×`WORLD_H`）を viewport 内で pan/zoom する。ドラッグ確定は `onDragEnd` で 1 回だけ `clampCard` してから commit（move 連打で全 localStorage 書き込み・全再描画しない）。カード固定寸法 `CARD_W`/`CARD_H` は CSS `.sandbox-world .sticky.small` と厳密一致させる（ズラすと clamp が壊れて「移動中に消える」が再発）。
+  - 種別の表示順は `CARD_KIND_ORDER`（`cardMeta.ts`）が単一の真実源。内訳・Hub の枚数は `summarizeWork(work).total` を使い、二重実装しない（`cards.length` を別途数えない）。
+  - お手本は `src/data/sampleWorks.ts` に**データとして**置く。記法（event=過去形 / command=現在形 / 全 command が actor・policy・externalSystem のいずれかでトリガー / 外部システムを孤立させない）は `sandbox.test.ts` の `detectTense` テストで機械検証する。
 
 ## テスト
 

@@ -561,19 +561,69 @@
 .sandbox-advice { font-size: var(--fs-caption); color: var(--ink-muted); }
 .sandbox-add { align-self: flex-start; }
 
-.sandbox-canvas {
-  position: relative; min-height: 320px; background: var(--surface-sunken);
-  background-image: radial-gradient(var(--line) 1px, transparent 1px);
-  background-size: 20px 20px;
-  border: 1px solid var(--line); border-radius: var(--radius-md); overflow: hidden;
+/* キャンバス: viewport(固定枠) の中で world(固定サイズ) を pan/zoom する。 */
+.sandbox-canvas-wrap { display: flex; flex-direction: column; gap: var(--space-xs); }
+.sandbox-toolbar { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.sandbox-zoom-label {
+  font-size: var(--fs-caption); color: var(--ink-muted);
+  min-width: 3.2em; text-align: center; font-variant-numeric: tabular-nums;
 }
-.sandbox-canvas-empty { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: var(--ink-muted); font-size: var(--fs-body-sm); text-align: center; padding: var(--space-md); }
+.btn-sm { padding: 4px 10px; font-size: var(--fs-caption); }
+.sandbox-viewport {
+  position: relative; height: clamp(380px, 62vh, 720px);
+  background: var(--surface-sunken);
+  border: 1px solid var(--line); border-radius: var(--radius-md);
+  overflow: hidden;              /* world は transform で動かすので hidden 維持 */
+  touch-action: none;            /* 背景パンがブラウザスクロールを奪う */
+  cursor: grab;
+}
+.sandbox-viewport.is-readonly { cursor: default; height: clamp(280px, 44vh, 460px); }
+.sandbox-world {
+  position: absolute; top: 0; left: 0; transform-origin: 0 0;
+  background-image: radial-gradient(var(--line) 1px, transparent 1px);
+  background-size: 20px 20px;    /* グリッドは world 側＝scale で一緒に拡縮 */
+  will-change: transform;
+}
+.sandbox-canvas-empty {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  color: var(--ink-muted); font-size: var(--fs-body-sm); text-align: center; padding: var(--space-md);
+  pointer-events: none;
+}
+.sandbox-card { position: absolute; }
+.sandbox-card.selected { outline: 2px solid var(--ink); outline-offset: 2px; border-radius: var(--radius-md); }
+/* 固定寸法は sandboxView.ts の CARD_W=132 / CARD_H=112 と厳密一致させる
+   （clamp / fit / 配置がこの寸法に依存。ズラすと「移動中に消える」根治が崩れる）。 */
+.sandbox-world .sticky.small {
+  width: 132px; height: 112px; box-sizing: border-box;
+  overflow: hidden; word-break: break-word;
+}
+.sandbox-card-edit {
+  width: 100%; font: inherit; color: inherit; box-sizing: border-box;
+  border: 1px solid currentColor; border-radius: 6px; padding: 2px 4px; background: rgba(255, 255, 255, 0.6);
+}
 .sandbox-card-del {
   position: absolute; top: -8px; right: -8px; width: 20px; height: 20px;
   border-radius: 50%; background: var(--ink); color: #fff; cursor: pointer;
   font-size: 13px; line-height: 1; display: flex; align-items: center; justify-content: center;
+  z-index: 6;
 }
 .sandbox-summary { background: var(--surface-sunken); border-radius: var(--radius-md); padding: var(--space-sm) var(--space-md); }
 .sandbox-summary h3 { font-size: var(--fs-body-sm); margin-bottom: var(--space-xs); }
 .sandbox-summary ul { list-style: none; display: flex; flex-direction: column; gap: 2px; font-size: var(--fs-body-sm); font-weight: 700; }
 .sandbox-summary li { display: flex; align-items: center; gap: 4px; }
+.sandbox-summary-row.is-empty { opacity: 0.38; }
+.sandbox-summary-count { margin-left: auto; font-variant-numeric: tabular-nums; }
+.sandbox-summary-total {
+  margin-top: 6px; border-top: 1px solid var(--line); padding-top: 6px;
+  font-size: var(--fs-body-sm); font-weight: 800;
+}
+
+/* お手本（サンプル）セクション */
+.sandbox-samples { margin: var(--space-lg) 0; }
+.sandbox-samples-title { display: flex; align-items: center; gap: 6px; font-size: var(--fs-body-sm); margin-bottom: var(--space-sm); }
+.sandbox-sample-card { border: 1px solid var(--line); border-radius: var(--radius-md); padding: var(--space-sm) var(--space-md); margin-bottom: var(--space-sm); background: var(--surface); }
+.sandbox-sample-head { margin-bottom: var(--space-xs); }
+.sandbox-sample-name { font-weight: 800; display: block; }
+.sandbox-sample-meta { font-size: var(--fs-caption); color: var(--ink-muted); }
+.sandbox-sample-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.sandbox-sample-preview { margin-top: var(--space-sm); }
