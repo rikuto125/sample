@@ -236,7 +236,8 @@ button { font-family: inherit; cursor: pointer; }
   border-radius: var(--radius-lg) var(--radius-lg) 0 0;
   box-shadow: var(--shadow-card);
   padding: var(--space-md) var(--space-md) calc(var(--space-lg) + env(safe-area-inset-bottom));
-  animation: toastIn var(--motion-base) var(--ease-out);
+  /* margin:auto で中央寄せのため、translateX を含む toastIn は使わない（一瞬左にズレる） */
+  animation: riseIn var(--motion-base) var(--ease-out);
 }
 .def-head { display: flex; align-items: center; gap: var(--space-sm); margin-bottom: var(--space-sm); }
 .def-pill {
@@ -327,7 +328,9 @@ button { font-family: inherit; cursor: pointer; }
   animation: toastIn var(--motion-base) var(--ease-out);
 }
 .toast.ok { background: #e9f5ea; color: var(--state-ok-ink); border-color: var(--state-ok); }
+/* toast は left:50% 固定なので translateX(-50%) が正しい。中央寄せ要素には riseIn を使う。 */
 @keyframes toastIn { from { opacity: 0; transform: translate(-50%, 10px); } to { opacity: 1; transform: translate(-50%, 0); } }
+@keyframes riseIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
 
 @keyframes shake {
   0%,100% { transform: translateX(0); }
