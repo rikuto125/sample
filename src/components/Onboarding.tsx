@@ -4,6 +4,7 @@ import { Sticky } from './Sticky'
 import { RichText } from './RichText'
 import { DefinitionSheet } from './DefinitionSheet'
 import { GLOSSARY } from '../game/glossary'
+import { track } from '../game/analytics'
 import type { Card, GlossaryEntry } from '../game/types'
 
 const SAMPLE: Card = {
@@ -23,6 +24,12 @@ export function Onboarding() {
   const { dispatch } = useStore()
   const [placed, setPlaced] = useState(false)
   const [def, setDef] = useState<GlossaryEntry | null>(null)
+
+  // 離脱点L1のskip率を観測してから本編へ
+  function finish(skipped: boolean) {
+    track('onboarding_complete', { skipped })
+    dispatch({ type: 'finishOnboarding' })
+  }
 
   return (
     <div className="screen onboarding screen-dark">
@@ -70,10 +77,7 @@ export function Onboarding() {
             分からない用語は <span className="chip-i" aria-hidden>ⓘ</span> や点線の語を
             タップ すると意味が見られます。
           </p>
-          <button
-            className="btn-primary"
-            onClick={() => dispatch({ type: 'finishOnboarding' })}
-          >
+          <button className="btn-primary" onClick={() => finish(false)}>
             ゲームを始める ▶
           </button>
         </div>
@@ -82,7 +86,7 @@ export function Onboarding() {
       {!placed && (
         <button
           className="btn-ghost on-dark skip"
-          onClick={() => dispatch({ type: 'finishOnboarding' })}
+          onClick={() => finish(true)}
         >
           スキップ
         </button>

@@ -35,6 +35,12 @@ export interface GlossaryEntry {
   icon?: string
   /** 章注記・混同防止の注記など（def 本文には含めない補足） */
   note?: string
+  /**
+   * 用語ラベルの前に置く「直感の足場」。def より手前に表示する。
+   * hook=身近な比喩、same=用語への橋渡し。題材語でなくメタファ。
+   * 正式定義ではない（def の置換でない）。正本は CONTEXT.md。
+   */
+  intuition?: { hook: string; same: string }
 }
 
 export interface Card {

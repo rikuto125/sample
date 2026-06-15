@@ -217,6 +217,23 @@
 .chain-box { margin-top: var(--space-sm); padding-top: var(--space-sm); border-top: 1px solid rgba(255,255,255,.2); }
 .chain-box strong { color: var(--es-policy); }
 
+/* 章クリア帯（result の screen-dark 上）。章は記法でないので記法色を使わず中立に */
+.chapter-clear {
+  display: flex; align-items: center; justify-content: center; gap: var(--space-xs);
+  background: rgba(255,255,255,.1);
+  border-radius: var(--radius-md);
+  padding: var(--space-sm) var(--space-md);
+  margin: 0 auto var(--space-md); max-width: 340px;
+  font-weight: 800;
+  animation: chapterPop var(--motion-base) var(--ease-out);
+}
+.cc-badge { font-size: 1.4rem; }
+.cc-text { font-size: var(--fs-body); }
+@keyframes chapterPop { from { opacity: 0; transform: scale(.92); } to { opacity: 1; transform: scale(1); } }
+
+/* 章ごとの進捗バー（全体バーより細く） */
+.chapter-progress { height: 6px; margin: var(--space-2xs) 0 var(--space-sm); }
+
 /* ===== Complete ===== */
 .finish-emoji { font-size: 3.5rem; margin-top: var(--space-md); }
 .finish-lead { opacity: .92; margin: var(--space-sm) auto var(--space-lg); max-width: 360px; }

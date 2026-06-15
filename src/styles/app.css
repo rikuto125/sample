@@ -191,6 +191,16 @@ button { font-family: inherit; cursor: pointer; }
 }
 .def-body { font-size: var(--fs-body); line-height: var(--lh-body); margin: 0; }
 .def-note { font-size: var(--fs-caption); color: var(--ink-muted); margin: var(--space-sm) 0 0; }
+/* 直感の足場（正式定義の前）。色は付けず左ボーダー＋淡色で「定義ではない補助」と階層化 */
+.def-intuition {
+  border-left: 3px solid var(--line);
+  background: var(--surface-sunken);
+  border-radius: var(--radius-sm);
+  padding: var(--space-xs) var(--space-sm);
+  margin: 0 0 var(--space-sm);
+}
+.def-intuition-hook { font-size: var(--fs-body-sm); font-weight: 700; margin: 0; }
+.def-intuition-same { font-size: var(--fs-body-sm); color: var(--ink-muted); margin: var(--space-2xs) 0 0; }
 
 /* オンボーディング: 定義UIの予告ヒント */
 .onboard-tip { font-size: var(--fs-body-sm); opacity: .85; margin: var(--space-sm) 0; }
