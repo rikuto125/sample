@@ -4,7 +4,6 @@ import { useStore } from '../store'
 import { CARD_META } from '../game/cardMeta'
 import { track } from '../game/analytics'
 import { soundEngine as sound } from '../game/sound'
-import { haptics } from '../game/haptics'
 
 export function ResultScreen() {
   const { state, dispatch } = useStore()
@@ -17,7 +16,6 @@ export function ResultScreen() {
   // 星獲得音（カチッ×星数）。視覚等価物は ★表示テキスト自体（§6.5）。
   useEffect(() => {
     sound.playStars(stars)
-    haptics.fire('star')
   }, [stars])
 
   // 章末（ただし全体の最終ステージでない）なら章クリア帯を出す。
