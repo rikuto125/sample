@@ -4,8 +4,12 @@ import { clearedCount } from '../game/progress'
 import { CARD_META } from '../game/cardMeta'
 import { track } from '../game/analytics'
 import { Icon, Stars } from './Icon'
+import { Mascot } from './Mascot'
 import { Star } from 'lucide-react'
 import type { Stage } from '../game/types'
+
+/** パスのノードを左右に振る横オフセット（Duolingo 風の蛇行）。 */
+const PATH_OFFSETS = [0, 40, 58, 40, 0, -40, -58, -40]
 
 export function HomeScreen() {
   const { state, dispatch } = useStore()
@@ -45,7 +49,7 @@ export function HomeScreen() {
         </p>
       </div>
 
-      {CHAPTERS.map((chapter) => {
+      {CHAPTERS.map((chapter, ci) => {
         const stages = chapter.stageIds
           .map((id) => STAGES.find((s) => s.id === id))
           .filter((s): s is Stage => s != null)
@@ -54,56 +58,64 @@ export function HomeScreen() {
           (s) => progress.stars[s.id] != null,
         ).length
         return (
-          <section key={chapter.id} className="chapter">
-            <h3 className={`chapter-title ${chapterDone ? 'done' : ''}`}>
-              <span className="chapter-icon">
+          <section key={chapter.id} className="unit">
+            {/* セクション帯（Duolingo のユニットヘッダ風） */}
+            <div className={`unit-banner ${chapterDone ? 'done' : ''}`}>
+              <span className="unit-icon">
                 <Icon name={chapter.icon} size={22} />
               </span>
-              {chapter.title}
+              <span className="unit-text">
+                <span className="unit-kicker">
+                  SECTION {ci + 1} ・ {chapterCleared}/{stages.length}
+                </span>
+                <span className="unit-title">{chapter.title}</span>
+              </span>
               {chapterDone && (
-                <span className="chapter-badge">
-                  <Icon name="check" size={13} /> クリア
+                <span className="unit-badge" aria-label="クリア">
+                  <Icon name="check" size={16} />
                 </span>
               )}
-            </h3>
-            <div
-              className="progressbar chapter-progress"
-              aria-label={`章の進捗 ${chapterCleared} / ${stages.length}`}
-            >
-              <i style={{ width: `${(chapterCleared / stages.length) * 100}%` }} />
             </div>
-            <div className="stage-map">
+
+            {/* 蛇行する学習パス */}
+            <ol className="path">
               {stages.map((s) => {
                 const i = indexOf.get(s.id)!
                 const stars = progress.stars[s.id]
+                const cleared = stars != null
+                const isCurrent = i === startIdx
                 const locked = i > startIdx && stars == null
+                const off = PATH_OFFSETS[i % PATH_OFFSETS.length]
                 return (
-                  <button
+                  <li
                     key={s.id}
-                    className={`stage-node ${stars != null ? 'cleared' : ''} ${locked ? 'locked' : ''}`}
-                    disabled={locked}
-                    onClick={() => startStage(i)}
+                    className={`path-row ${off <= 0 ? 'lean-left' : 'lean-right'}`}
+                    style={{ ['--off' as string]: `${off}px` }}
                   >
-                    <span className="node-icon">
-                      <Icon name={s.icon} size={26} />
-                    </span>
-                    <span className="node-body">
-                      <span className="node-name">{s.name}</span>
-                      <span className="node-mode">{s.modeLabel}</span>
-                    </span>
-                    <span className="node-stars">
-                      {stars != null ? (
-                        <Stars value={stars} size={16} />
-                      ) : locked ? (
-                        <Icon name="lock" size={18} className="node-lock" />
+                    {isCurrent && <div className="start-flag">ここから</div>}
+                    <button
+                      className={`path-node ${cleared ? 'cleared' : ''} ${isCurrent ? 'current' : ''} ${locked ? 'locked' : ''}`}
+                      disabled={locked}
+                      onClick={() => startStage(i)}
+                      aria-label={`${s.name}・${s.modeLabel}${cleared ? `・${stars}つ星クリア済み` : locked ? '・ロック中' : '・挑戦できます'}`}
+                    >
+                      <Icon name={locked ? 'lock' : s.icon} size={30} />
+                    </button>
+                    <span className="path-caption">
+                      <span className="path-name">{s.name}</span>
+                      {cleared ? (
+                        <Stars value={stars} size={13} />
                       ) : (
-                        <Icon name="next" size={20} className="node-go" />
+                        <span className="path-mode">{s.modeLabel}</span>
                       )}
                     </span>
-                  </button>
+                    {isCurrent && (
+                      <Mascot mood="happy" size={80} className="path-mascot" />
+                    )}
+                  </li>
                 )
               })}
-            </div>
+            </ol>
           </section>
         )
       })}

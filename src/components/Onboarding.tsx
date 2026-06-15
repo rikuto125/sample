@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useStore } from '../store'
 import { Sticky } from './Sticky'
 import { Icon } from './Icon'
+import { Mascot } from './Mascot'
 import { RichText } from './RichText'
 import { DefinitionSheet } from './DefinitionSheet'
 import { GLOSSARY } from '../game/glossary'
@@ -35,6 +36,7 @@ export function Onboarding() {
   return (
     <div className="screen onboarding screen-dark">
       <div className="onboard-hero">
+        <Mascot mood="happy" size={72} className="onboard-mascot" />
         <div className="kicker">ようこそ StormQuest へ</div>
         <h1 className="onboard-title">
           まず、<span className="hl">1枚だけ</span>置いてみよう
@@ -72,6 +74,7 @@ export function Onboarding() {
         </button>
       ) : (
         <div className="onboard-success">
+          <Mascot mood="cheer" size={72} className="onboard-mascot-cheer" />
           <p className="success-msg">
             <Icon name="sparkles" size={18} /> いいね！ これがドメインイベント。
             「〜した／された」と過去形で書くのがポイント。

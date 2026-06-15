@@ -4,6 +4,7 @@ import { useStore } from '../store'
 import { CARD_META } from '../game/cardMeta'
 import { track } from '../game/analytics'
 import { Icon } from './Icon'
+import { Mascot } from './Mascot'
 import { soundEngine as sound } from '../game/sound'
 import { Star } from 'lucide-react'
 
@@ -27,6 +28,7 @@ export function ResultScreen() {
 
   return (
     <div className="screen result screen-dark">
+      <Mascot mood="cheer" size={92} className="result-mascot" />
       <div className="result-title">STAGE CLEAR!</div>
       <div className="stars-big" aria-label={`${stars}つ星`}>
         {Array.from({ length: 3 }, (_, i) =>
