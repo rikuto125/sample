@@ -10,17 +10,40 @@ const ORDER: CardKind[] = [
   'readModel',
 ]
 
-export function Legend({ kinds = ORDER }: { kinds?: CardKind[] }) {
+interface LegendProps {
+  kinds?: CardKind[]
+  /** 渡されたときだけチップがタップ可能になり、種別の定義を開く（後方互換） */
+  onOpenDef?: (kind: CardKind) => void
+}
+
+export function Legend({ kinds = ORDER, onOpenDef }: LegendProps) {
   return (
     <div className="legend" aria-label="記法の凡例">
       {kinds.map((k) => {
         const m = CARD_META[k]
+        const style = { background: m.color, color: m.ink }
+        // onOpenDef がある時だけ button 化（タップで定義）。無い時は従来の span。
+        if (onOpenDef) {
+          return (
+            <button
+              key={k}
+              type="button"
+              className="chip"
+              style={style}
+              onClick={() => onOpenDef(k)}
+              aria-label={`${m.labelJa}の意味を見る`}
+              aria-haspopup="dialog"
+            >
+              <span aria-hidden>{m.icon}</span>
+              {m.labelJa}
+              <span className="chip-i" aria-hidden>
+                ⓘ
+              </span>
+            </button>
+          )
+        }
         return (
-          <span
-            key={k}
-            className="chip"
-            style={{ background: m.color, color: m.ink }}
-          >
+          <span key={k} className="chip" style={style}>
             <span aria-hidden>{m.icon}</span>
             {m.labelJa}
           </span>

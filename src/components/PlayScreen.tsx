@@ -3,15 +3,50 @@ import { STAGES } from '../data/stages'
 import { useStore, commitClear } from '../store'
 import { scoreStars } from '../game/engine'
 import { track } from '../game/analytics'
+import { GLOSSARY, glossaryForKind } from '../game/glossary'
+import type { CardKind, GlossaryEntry, Stage } from '../game/types'
 import { TimelineMode } from './TimelineMode'
 import { TriggerMode } from './TriggerMode'
+import { InvariantGateMode } from './InvariantGateMode'
 import { Legend } from './Legend'
+import { RichText } from './RichText'
+import { DefinitionSheet, type DefVia } from './DefinitionSheet'
 import { Toast, type ToastState } from './Toast'
+
+/** 本文ハイライト対象の用語。stage.glossaryRefs が無ければそのステージの記法種別を既定にする。 */
+function inlineTerms(stage: Stage): GlossaryEntry[] {
+  if (stage.glossaryRefs?.length) {
+    return stage.glossaryRefs
+      .map((id) => GLOSSARY[id])
+      .filter((e): e is GlossaryEntry => e != null)
+  }
+  const kinds = new Set<CardKind>()
+  if (stage.mode === 'timeline') {
+    stage.events.forEach((c) => kinds.add(c.kind))
+    stage.distractors.forEach((c) => kinds.add(c.kind))
+  } else if (stage.mode === 'trigger') {
+    stage.commands.forEach((c) => kinds.add(c.kind))
+    stage.triggers.forEach((c) => kinds.add(c.kind))
+  } else {
+    kinds.add('command')
+    kinds.add('event')
+    kinds.add('aggregate')
+  }
+  return [...kinds].map((k) => glossaryForKind(k))
+}
 
 export function PlayScreen() {
   const { state, dispatch } = useStore()
   const stage = STAGES[state.stageIdx]
   const [toast, setToast] = useState<ToastState | null>(null)
+  // 定義シートの開閉は UI 一時状態なのでローカル state（グローバル reducer を汚さない）
+  const [def, setDef] = useState<{ entry: GlossaryEntry; via: DefVia } | null>(
+    null,
+  )
+
+  function openByKind(kind: CardKind, via: DefVia) {
+    setDef({ entry: glossaryForKind(kind), via })
+  }
 
   function showToast(message: string, kind: 'error' | 'ok' = 'error') {
     setToast({ message, kind, key: Date.now() })
@@ -35,23 +70,61 @@ export function PlayScreen() {
       <h2 className="play-title">
         {stage.icon} {stage.name}
       </h2>
-      <Legend />
-      <div className="scenario">{stage.scenario}</div>
-      <p className="instruction">{stage.instruction}</p>
+      <Legend
+        kinds={
+          stage.mode === 'invariant'
+            ? ['event', 'command', 'aggregate']
+            : undefined
+        }
+        onOpenDef={(k) => openByKind(k, 'legend')}
+      />
+      <div className="scenario">
+        <RichText
+          text={stage.scenario}
+          terms={inlineTerms(stage)}
+          onOpenDef={(entry) => setDef({ entry, via: 'inline' })}
+        />
+      </div>
+      <p className="instruction">
+        <RichText
+          text={stage.instruction}
+          terms={inlineTerms(stage)}
+          onOpenDef={(entry) => setDef({ entry, via: 'inline' })}
+        />
+      </p>
 
-      {stage.mode === 'timeline' ? (
+      {stage.mode === 'timeline' && (
         <TimelineMode
           key={stage.id}
           stage={stage}
           onCorrect={handleCorrect}
           onMistake={handleMistake}
         />
-      ) : (
+      )}
+      {stage.mode === 'trigger' && (
         <TriggerMode
           key={stage.id}
           stage={stage}
           onCorrect={handleCorrect}
           onMistake={handleMistake}
+          onInfo={(k) => openByKind(k, 'sticky')}
+        />
+      )}
+      {stage.mode === 'invariant' && (
+        <InvariantGateMode
+          key={stage.id}
+          stage={stage}
+          onCorrect={handleCorrect}
+          onMistake={handleMistake}
+          onInfo={(k) => openByKind(k, 'sticky')}
+        />
+      )}
+
+      {def && (
+        <DefinitionSheet
+          entry={def.entry}
+          via={def.via}
+          onClose={() => setDef(null)}
         />
       )}
 

@@ -1,13 +1,19 @@
 import { useState } from 'react'
 import { useStore } from '../store'
 import { Sticky } from './Sticky'
-import type { Card } from '../game/types'
+import { RichText } from './RichText'
+import { DefinitionSheet } from './DefinitionSheet'
+import { GLOSSARY } from '../game/glossary'
+import type { Card, GlossaryEntry } from '../game/types'
 
 const SAMPLE: Card = {
   id: 'onboard-event',
   kind: 'event',
   labelJa: 'ピザが焼き上がった',
 }
+
+// オンボーディング中に「ドメインイベント」を一度だけ下線にし、定義UIの操作を予告体験させる
+const ONBOARD_TERMS: GlossaryEntry[] = [GLOSSARY.event]
 
 /**
  * オンボーディング: 説明より先に「1枚置く成功体験」（市場調査の知見）。
@@ -16,6 +22,7 @@ const SAMPLE: Card = {
 export function Onboarding() {
   const { dispatch } = useStore()
   const [placed, setPlaced] = useState(false)
+  const [def, setDef] = useState<GlossaryEntry | null>(null)
 
   return (
     <div className="screen onboarding screen-dark">
@@ -24,8 +31,13 @@ export function Onboarding() {
         まず、<span className="hl">1枚だけ</span>置いてみよう
       </h1>
       <p className="onboard-lead">
-        オレンジの付箋は「<strong>過去に起きた事実</strong>」＝ドメインイベント。
-        下の付箋を、タイムラインにタップで置いてみて。
+        オレンジの付箋は「<strong>過去に起きた事実</strong>」＝
+        <RichText
+          text="ドメインイベント"
+          terms={ONBOARD_TERMS}
+          onOpenDef={setDef}
+        />
+        。 下の付箋を、タイムラインにタップで置いてみて。
       </p>
 
       <div className="onboard-board">
@@ -54,6 +66,10 @@ export function Onboarding() {
             🎉 いいね！ これがドメインイベント。
             「〜した／された」と過去形で書くのがポイント。
           </p>
+          <p className="onboard-tip">
+            分からない用語は <span className="chip-i" aria-hidden>ⓘ</span> や点線の語を
+            タップ すると意味が見られます。
+          </p>
           <button
             className="btn-primary"
             onClick={() => dispatch({ type: 'finishOnboarding' })}
@@ -70,6 +86,14 @@ export function Onboarding() {
         >
           スキップ
         </button>
+      )}
+
+      {def && (
+        <DefinitionSheet
+          entry={def}
+          via="inline"
+          onClose={() => setDef(null)}
+        />
       )}
     </div>
   )
