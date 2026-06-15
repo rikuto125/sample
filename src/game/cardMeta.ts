@@ -70,3 +70,23 @@ export const CARD_META: Record<CardKind, CardMeta> = {
     labelEn: 'Aggregate',
   },
 }
+
+/**
+ * 種別の正準表示順。CARD_META は Record でキー順を契約にできないため、
+ * 内訳サマリ・パレットの並びはこの配列を単一の真実源にする。
+ * CardKind を増やしたら下の網羅ガードが compile error になり、列挙漏れを防ぐ。
+ */
+export const CARD_KIND_ORDER = [
+  'event',
+  'command',
+  'actor',
+  'policy',
+  'externalSystem',
+  'readModel',
+  'aggregate',
+] as const satisfies readonly CardKind[]
+
+const _exhaustive: Record<CardKind, true> = Object.fromEntries(
+  CARD_KIND_ORDER.map((k) => [k, true]),
+) as Record<CardKind, true>
+void _exhaustive

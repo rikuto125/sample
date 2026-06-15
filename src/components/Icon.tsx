@@ -41,6 +41,7 @@ import {
   Download,
   FolderOpen,
   Trash2,
+  Pencil,
   CircleHelp,
   type LucideIcon,
   type LucideProps,
@@ -106,6 +107,7 @@ const REGISTRY = {
   download: Download,
   folder: FolderOpen,
   trash: Trash2,
+  edit: Pencil,
 } satisfies Record<string, LucideIcon>
 
 export type IconName = keyof typeof REGISTRY

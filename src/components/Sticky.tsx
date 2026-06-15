@@ -15,6 +15,19 @@ interface StickyProps {
   onInfo?: (kind: CardKind) => void
   /** onInfo があっても、この値が false の間は i を出さない（ドラッグ中など） */
   showInfo?: boolean
+  // ---- ラベル編集（個人ワークのキャンバスでのみ使う。controlled） ----
+  /** 編集モード。true のとき本文ラベルが入力欄に化ける */
+  editing?: boolean
+  /** 編集中の下書き値（controlled。親が state で保持） */
+  editDraft?: string
+  /** 入力のたびに呼ぶ（親の下書き state を更新） */
+  onEditChange?: (value: string) => void
+  /** 確定（Enter / 明示ボタン）。blur では確定しない */
+  onEditCommit?: () => void
+  /** 取り消し（Escape） */
+  onEditCancel?: () => void
+  /** ✎ ボタンで編集を開始する（編集していないときのみ表示） */
+  onEditStart?: () => void
 }
 
 /**
@@ -31,9 +44,16 @@ export function Sticky({
   style,
   onInfo,
   showInfo = false,
+  editing = false,
+  editDraft = '',
+  onEditChange,
+  onEditCommit,
+  onEditCancel,
+  onEditStart,
 }: StickyProps) {
   const meta = CARD_META[card.kind]
   const withInfo = showMeta && showInfo && onInfo != null
+  const canEdit = onEditStart != null
   return (
     <div
       className={`sticky ${small ? 'small' : ''} ${dragging ? 'dragging' : ''} ${inHand ? 'in-hand' : ''} ${className}`}
@@ -61,10 +81,47 @@ export function Sticky({
               <Icon name="info" size={14} />
             </button>
           )}
+          {canEdit && !editing && (
+            <button
+              type="button"
+              className="sticky-info"
+              style={{ color: meta.ink }}
+              // ✎ タップでドラッグを開始させない
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={(e) => {
+                e.stopPropagation()
+                onEditStart?.()
+              }}
+              aria-label={`${card.labelJa} を編集`}
+            >
+              <Icon name="edit" size={14} />
+            </button>
+          )}
         </span>
       )}
-      <span className="text">{card.labelJa}</span>
-      {card.labelEn && (
+      {editing ? (
+        <input
+          className="sandbox-card-edit"
+          value={editDraft}
+          autoFocus
+          // 入力は controlled。blur では確定しない（Enter / 明示のみ）。
+          onPointerDown={(e) => e.stopPropagation()}
+          onChange={(e) => onEditChange?.(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault()
+              onEditCommit?.()
+            } else if (e.key === 'Escape') {
+              e.preventDefault()
+              onEditCancel?.()
+            }
+          }}
+          aria-label={`${meta.labelJa}のラベルを編集`}
+        />
+      ) : (
+        <span className="text">{card.labelJa}</span>
+      )}
+      {card.labelEn && !editing && (
         <span
           style={{
             display: 'block',
