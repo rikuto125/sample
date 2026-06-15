@@ -38,11 +38,11 @@ function AppBar() {
     <header className="appbar">
       {!onHome ? (
         <button className="back" onClick={() => dispatch({ type: 'goHome' })} aria-label="ホームに戻る">
-          <Icon name="back" size={16} /> ホーム
+          <Icon name="back" size={20} />
         </button>
       ) : (
-        <span className="back" style={{ visibility: 'hidden' }}>
-          <Icon name="back" size={16} />
+        <span className="back" style={{ visibility: 'hidden' }} aria-hidden>
+          <Icon name="back" size={20} />
         </span>
       )}
       <span className="title">
