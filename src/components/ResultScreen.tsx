@@ -6,7 +6,6 @@ import { track } from '../game/analytics'
 import { Icon } from './Icon'
 import { Mascot } from './Mascot'
 import { soundEngine as sound } from '../game/sound'
-import { Star } from 'lucide-react'
 
 export function ResultScreen() {
   const { state, dispatch } = useStore()
@@ -33,16 +32,16 @@ export function ResultScreen() {
       <div className="stars-big" aria-label={`${stars}つ星`}>
         {Array.from({ length: 3 }, (_, i) =>
           i < stars ? (
-            <Star
+            <Icon
+              name="star"
               key={i}
               className="star-pop star-on"
               style={{ animationDelay: `${i * 90}ms` }}
               fill="currentColor"
               strokeWidth={2}
-              aria-hidden
             />
           ) : (
-            <Star key={i} className="star-off" fill="none" strokeWidth={2} aria-hidden />
+            <Icon name="star" key={i} className="star-off" fill="none" strokeWidth={2} />
           ),
         )}
       </div>

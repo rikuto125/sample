@@ -1,3 +1,4 @@
+import { useCallback, useMemo } from 'react'
 import { STAGES, CHAPTERS } from '../data/stages'
 import { useStore } from '../store'
 import { clearedCount } from '../game/progress'
@@ -5,7 +6,6 @@ import { track } from '../game/analytics'
 import { Icon, Stars } from './Icon'
 import { Mascot } from './Mascot'
 import { VocabCodex } from './VocabCodex'
-import { Star } from 'lucide-react'
 import type { Stage } from '../game/types'
 
 /** パスのノードを左右に振る横オフセット（Duolingo 風の蛇行）。 */
@@ -22,13 +22,16 @@ export function HomeScreen() {
   const totalStarCount = Object.values(progress.stars).reduce((a, b) => a + b, 0)
 
   // stageId -> 全体での index（ロック判定に使う）
-  const indexOf = new Map(STAGES.map((s, i) => [s.id, i]))
+  const indexOf = useMemo(() => new Map(STAGES.map((s, i) => [s.id, i])), [])
 
   // 着手を計測（完走率の分母）。stageIdx が変わる着手で1回発火。
-  function startStage(idx: number) {
-    track('stage_start', { stage: STAGES[idx].id })
-    dispatch({ type: 'startStage', idx })
-  }
+  const startStage = useCallback(
+    (idx: number) => {
+      track('stage_start', { stage: STAGES[idx].id })
+      dispatch({ type: 'startStage', idx })
+    },
+    [dispatch],
+  )
 
   return (
     <div className="screen home">
@@ -45,7 +48,7 @@ export function HomeScreen() {
         </div>
         <p className="pct">
           {done} / {total} ステージ・{totalStarCount}{' '}
-          <Star size={13} fill="currentColor" strokeWidth={2} className="pct-star" aria-hidden />
+          <Icon name="star" size={13} fill="currentColor" strokeWidth={2} className="pct-star" />
         </p>
       </div>
 

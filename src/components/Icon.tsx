@@ -19,7 +19,6 @@ import {
   ScrollText,
   Timer,
   Target,
-  PartyPopper,
   Lightbulb,
   Volume2,
   VolumeX,
@@ -27,7 +26,6 @@ import {
   Link2,
   Lock,
   ArrowRight,
-  ArrowLeft,
   ArrowDown,
   ArrowUp,
   Star,
@@ -40,7 +38,6 @@ import {
   Sparkles,
   Trophy,
   Share2,
-  RotateCcw,
   CircleHelp,
   type LucideIcon,
   type LucideProps,
@@ -84,7 +81,6 @@ const REGISTRY = {
   scenario: ScrollText,
   timer: Timer,
   target: Target,
-  celebrate: PartyPopper,
   sparkles: Sparkles,
   trophy: Trophy,
   hint: Lightbulb,
@@ -94,7 +90,6 @@ const REGISTRY = {
   chain: Link2,
   lock: Lock,
   next: ArrowRight,
-  prev: ArrowLeft,
   down: ArrowDown,
   up: ArrowUp,
   star: Star,
@@ -105,7 +100,6 @@ const REGISTRY = {
   wave: Hand,
   plus: Plus,
   share: Share2,
-  retry: RotateCcw,
 } satisfies Record<string, LucideIcon>
 
 export type IconName = keyof typeof REGISTRY

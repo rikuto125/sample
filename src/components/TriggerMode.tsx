@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { Card, CardKind, TriggerStage } from '../game/types'
 import { checkTriggers, isValidLink } from '../game/engine'
 import { CARD_META } from '../game/cardMeta'
@@ -28,6 +28,15 @@ export function TriggerMode({ stage, onCorrect, onMistake, onInfo }: Props) {
   const [usedHint, setUsedHint] = useState(false)
   const [showHint, setShowHint] = useState(false)
   const [justLinked, setJustLinked] = useState<string | null>(null)
+  // 接続演出タイマーの積み残しをアンマウント時に掃除（StrictMode dev 二重マウントでも空で no-op）
+  const timersRef = useRef<number[]>([])
+  useEffect(() => {
+    const timers = timersRef.current
+    return () => {
+      for (const t of timers) clearTimeout(t)
+      timers.length = 0
+    }
+  }, [])
 
   const triggerById = useMemo(
     () => new Map(stage.triggers.map((t) => [t.id, t])),
@@ -45,7 +54,7 @@ export function TriggerMode({ stage, onCorrect, onMistake, onInfo }: Props) {
       sound.play('snap')
       // MODE2 接続演出（赤破線→緑実線+✓）を 250ms 当てる
       setJustLinked(commandId)
-      window.setTimeout(() => setJustLinked(null), 260)
+      timersRef.current.push(window.setTimeout(() => setJustLinked(null), 260))
     } else {
       setMistakes((m) => m + 1)
       onMistake(
