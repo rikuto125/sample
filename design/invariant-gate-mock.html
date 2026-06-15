@@ -112,9 +112,12 @@
   .gate-btn.pass { background: var(--ok-tint); color: var(--ok); border-color: var(--ok); }
   .gate-btn.block { background: var(--bad-tint); color: var(--bad); border-color: var(--bad); }
 
-  /* 判断後フィードバック（モックでは pass 選択後の例を表示） */
+  /* 判断「後」にだけ出る結果フィードバック */
   .feedback { text-align:center; font-size:13px; font-weight:700; padding:8px; border-radius:8px; margin-bottom:14px; }
   .feedback.ok { background: var(--ok-tint); color: var(--ok); }
+  /* モック上で「これは押した後に出る参考」と分かるよう薄く表示 */
+  .feedback-after-note { text-align:center; font-size:11px; color: var(--ink-faint); margin-bottom:4px; }
+  .faded-example { opacity:.45; }
 
   .hint-btn {
     width: 100%; background: none; border: 1px solid var(--line); border-radius: var(--radius);
@@ -199,8 +202,11 @@
       </button>
     </div>
 
-    <!-- 判断後にだけ出るフィードバック（モック例: 通した後） -->
-    <div class="feedback ok">通った → タスクが延期された（イベント発行）／延期回数 3 / 3</div>
+    <!-- 判断「前」はフィードバックを出さない（ネタバレ防止）。
+         結果テキストは選択後にのみ表示する。下は「押した後」に出る見え方の参考例で、
+         実際の画面では押すまで存在しない（faded で参考表示していることを明示）。 -->
+    <div class="feedback-after-note">↓ 押した後にだけ、ここに結果が出る（押す前は表示なし）</div>
+    <div class="feedback ok faded-example">タスクが延期された（イベント発行）／3 回目・上限内なのでOK</div>
 
     <!-- 5. ヒント（三次） -->
     <button class="hint-btn">
