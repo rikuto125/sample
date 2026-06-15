@@ -4,7 +4,6 @@ import { useStore } from '../store'
 import { totalStars } from '../game/progress'
 import { track } from '../game/analytics'
 import { soundEngine as sound } from '../game/sound'
-import { haptics } from '../game/haptics'
 
 export function CompleteScreen() {
   const { state, dispatch } = useStore()
@@ -15,7 +14,6 @@ export function CompleteScreen() {
   // 完走ファンファーレ（2秒以内）。celebrateFlash は CSS で1回。
   useEffect(() => {
     sound.play('fanfare')
-    haptics.fire('fanfare')
   }, [])
 
   function share() {

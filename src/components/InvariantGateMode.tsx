@@ -7,7 +7,6 @@ import type {
 import { commandPasses, applyCommand } from '../game/engine'
 import { CARD_META } from '../game/cardMeta'
 import { soundEngine as sound } from '../game/sound'
-import { haptics } from '../game/haptics'
 
 interface Props {
   stage: InvariantGateStage
@@ -64,7 +63,6 @@ export function InvariantGateMode({
         onCorrect(mistakes, usedHint) // 最終正解は handleCorrect が 'correct' を鳴らす
       } else {
         sound.play('snap') // 途中の正しい判断
-        haptics.fire('snap')
         setIdx(nextIdx)
       }
     } else {

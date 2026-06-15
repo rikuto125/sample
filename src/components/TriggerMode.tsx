@@ -5,7 +5,6 @@ import { CARD_META } from '../game/cardMeta'
 import { Sticky } from './Sticky'
 import { shuffle } from '../game/shuffle'
 import { soundEngine as sound } from '../game/sound'
-import { haptics } from '../game/haptics'
 
 interface Props {
   stage: TriggerStage
@@ -43,7 +42,6 @@ export function TriggerMode({ stage, onCorrect, onMistake, onInfo }: Props) {
       setLinks((l) => ({ ...l, [commandId]: selected.id }))
       setSelected(null)
       sound.play('snap')
-      haptics.fire('snap')
       // MODE2 接続演出（赤破線→緑実線+✓）を 250ms 当てる
       setJustLinked(commandId)
       window.setTimeout(() => setJustLinked(null), 260)
