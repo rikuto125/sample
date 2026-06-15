@@ -126,6 +126,11 @@ function evalGuard(state: AggregateState, guard: InvariantGuard): boolean {
       return v >= guard.value
     case 'eq':
       return v === guard.value
+    default: {
+      // 網羅性チェック: InvariantGuard に op の分岐漏れがあれば型エラーになる
+      const _exhaustive: never = guard
+      return _exhaustive
+    }
   }
 }
 

@@ -111,7 +111,9 @@ const REGISTRY = {
 export type IconName = keyof typeof REGISTRY
 
 interface IconProps extends Omit<LucideProps, 'ref'> {
-  name: IconName | string
+  // IconName のリテラル補完を効かせつつ任意文字列も受ける
+  // （glossary.icon 等の string 由来トークンも渡せる）。
+  name: IconName | (string & {})
 }
 
 /**

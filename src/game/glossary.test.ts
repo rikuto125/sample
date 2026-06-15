@@ -113,3 +113,20 @@ describe('GLOSSARY — 直感(intuition)の足場', () => {
     expect(same.includes('入れ物'), '集約を「入れ物」と表現しない').toBe(false)
   })
 })
+
+describe('GLOSSARY — ENTRIES 由来の導出（id 重複の silent dedupe 検出）', () => {
+  it('各 GLOSSARY エントリの key と entry.id が一致する（Object.fromEntries の取り違え防止）', () => {
+    for (const [key, entry] of Object.entries(GLOSSARY)) {
+      expect(entry.id, `GLOSSARY['${key}'].id`).toBe(key)
+    }
+  })
+
+  it('全 CardKind が KIND_TO_GLOSSARY_ID を持ち、その先の GLOSSARY エントリが存在する', () => {
+    for (const k of KINDS) {
+      const id = KIND_TO_GLOSSARY_ID[k]
+      expect(id, `kind ${k} の代表 id`).toBeTruthy()
+      expect(GLOSSARY[id], `GLOSSARY['${id}']`).toBeDefined()
+      expect(GLOSSARY[id].kind).toBe(k)
+    }
+  })
+})

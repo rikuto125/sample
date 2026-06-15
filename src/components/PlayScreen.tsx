@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { STAGES } from '../data/stages'
 import { useStore, commitClear } from '../store'
 import { scoreStars } from '../game/engine'
@@ -53,27 +53,43 @@ export function PlayScreen() {
     null,
   )
 
-  function openByKind(kind: CardKind, via: DefVia) {
+  // 本文ハイライト用の用語は stage ごとに1回だけ算出（旧: 指示文と説明文で2回計算）
+  const terms = useMemo(() => inlineTerms(stage), [stage])
+
+  const openByKind = useCallback((kind: CardKind, via: DefVia) => {
     setDef({ entry: glossaryForKind(kind), via })
-  }
+  }, [])
 
-  function showToast(message: string, kind: 'error' | 'ok' = 'error') {
-    setToast({ message, kind, key: Date.now() })
-  }
+  const openInline = useCallback((entry: GlossaryEntry) => {
+    setDef({ entry, via: 'inline' })
+  }, [])
 
-  function handleCorrect(mistakes: number, usedHint: boolean) {
-    const stars = scoreStars({ mistakes, usedHint })
-    const progress = commitClear(state, stage.id, stars, stage.vocab.id)
-    sound.play('correct')
-    track('stage_clear', { stage: stage.id, stars, mistakes, usedHint })
-    dispatch({ type: 'clearStage', stars, progress })
-  }
+  const showToast = useCallback(
+    (message: string, kind: 'error' | 'ok' = 'error') => {
+      setToast({ message, kind, key: Date.now() })
+    },
+    [],
+  )
 
-  function handleMistake(reason: string) {
-    sound.play('mistake')
-    track('stage_retry', { stage: stage.id })
-    showToast(reason, 'error')
-  }
+  const handleCorrect = useCallback(
+    (mistakes: number, usedHint: boolean) => {
+      const stars = scoreStars({ mistakes, usedHint })
+      const progress = commitClear(state, stage.id, stars, stage.vocab.id)
+      sound.play('correct')
+      track('stage_clear', { stage: stage.id, stars, mistakes, usedHint })
+      dispatch({ type: 'clearStage', stars, progress })
+    },
+    [state, stage, dispatch],
+  )
+
+  const handleMistake = useCallback(
+    (reason: string) => {
+      sound.play('mistake')
+      track('stage_retry', { stage: stage.id })
+      showToast(reason, 'error')
+    },
+    [stage.id, showToast],
+  )
 
   return (
     <div className="screen play">
@@ -88,8 +104,8 @@ export function PlayScreen() {
         <span>
           <RichText
             text={stage.instruction}
-            terms={inlineTerms(stage)}
-            onOpenDef={(entry) => setDef({ entry, via: 'inline' })}
+            terms={terms}
+            onOpenDef={openInline}
           />
         </span>
       </p>
@@ -105,8 +121,8 @@ export function PlayScreen() {
           <span>
             <RichText
               text={stage.scenario}
-              terms={inlineTerms(stage)}
-              onOpenDef={(entry) => setDef({ entry, via: 'inline' })}
+              terms={terms}
+              onOpenDef={openInline}
             />
           </span>
         </div>

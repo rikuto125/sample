@@ -16,9 +16,11 @@ import type { CardKind, GlossaryEntry, VocabEntry } from './types'
  * intuition（用語の前に置く直感の足場）も def 同様 CONTEXT.md が正・手書き禁止。
  * 読めている語（actor/policy/externalSystem/readModel）には付けない。
  */
-export const GLOSSARY: Record<string, GlossaryEntry> = {
+// 用語エントリの単一ソース。GLOSSARY(id→entry) と KIND_TO_GLOSSARY_ID は
+// これから導出する（キーと id を二重に手書きしない）。
+const ENTRIES: GlossaryEntry[] = [
   // ---- EventStorming 記法7種（kind を持つ）----
-  event: {
+  {
     id: 'event',
     ja: 'ドメインイベント',
     en: 'Domain Event',
@@ -29,7 +31,7 @@ export const GLOSSARY: Record<string, GlossaryEntry> = {
       same: 'ドメインイベントも同じ。実際に起きてしまった事実で、過去形（〜した／された）でしか言えない。番人が弾けば何も起きない＝発行されない。',
     },
   },
-  command: {
+  {
     id: 'command',
     ja: 'コマンド',
     en: 'Command',
@@ -40,35 +42,35 @@ export const GLOSSARY: Record<string, GlossaryEntry> = {
       same: 'コマンドも同じ。「〜する」という意図・指示で、通るかは番人が決める。起こすのは客（アクター）とは限らず、ハウスルール（ポリシー）や外の店（外部システム）のこともある。',
     },
   },
-  actor: {
+  {
     id: 'actor',
     ja: 'アクター',
     en: 'Actor',
     kind: 'actor',
     def: 'コマンドを起こす人・役割（顧客、店長…）。',
   },
-  policy: {
+  {
     id: 'policy',
     ja: 'ポリシー',
     en: 'Policy',
     kind: 'policy',
     def: '「◯◯したら、△△する」— イベントに反応して次のコマンドを自動で起こすルール。',
   },
-  externalSystem: {
+  {
     id: 'externalSystem',
     ja: '外部システム',
     en: 'External System',
     kind: 'externalSystem',
     def: '自分たちの管理外のシステム（決済ゲートウェイ、地図API…）。',
   },
-  readModel: {
+  {
     id: 'readModel',
     ja: 'リードモデル',
     en: 'Read Model',
     kind: 'readModel',
     def: '人が意思決定するために参照する情報（画面・一覧）。イベントから導かれる。',
   },
-  aggregate: {
+  {
     id: 'aggregate',
     ja: '集約',
     en: 'Aggregate',
@@ -82,7 +84,7 @@ export const GLOSSARY: Record<string, GlossaryEntry> = {
   },
 
   // ---- 補助用語（CardKind を持たない。icon は CONTEXT.md 準拠、色は付けない）----
-  aggregateInvariant: {
+  {
     id: 'aggregateInvariant',
     ja: '集約不変条件',
     en: 'Aggregate Invariant',
@@ -94,30 +96,29 @@ export const GLOSSARY: Record<string, GlossaryEntry> = {
       same: '集約不変条件も同じ。何があっても破られないハウスルールで、破るコマンドは必ず拒否される（例「延期は最大3回」）。',
     },
   },
-  stateTransition: {
+  {
     id: 'stateTransition',
     ja: '状態遷移',
     en: 'State Transition',
     icon: 'transition',
     def: '集約の状態が変わること（例 UNDONE→DONE）。遷移後は許されるコマンドが変わる。',
   },
-}
+]
+
+/** 用語定義の単一ソース（id → entry）。ENTRIES から導出。 */
+export const GLOSSARY: Record<string, GlossaryEntry> = Object.fromEntries(
+  ENTRIES.map((e) => [e.id, e]),
+)
 
 /**
- * 記法種別（CardKind）→ 代表用語 id。
+ * 記法種別（CardKind）→ 代表用語 id。ENTRIES の kind 付きエントリから導出する。
  * 凡例チップ・付箋 i の「種別 → 定義」経路はこのマップ1枚で解決する。
  * kind 'aggregate' は記法カードとしての「集約」を代表とする
- * （集約不変条件・状態遷移は本文ハイライト経由で引く）。
+ * （集約不変条件・状態遷移は kind を持たず本文ハイライト経由で引く）。
  */
-export const KIND_TO_GLOSSARY_ID: Record<CardKind, string> = {
-  event: 'event',
-  command: 'command',
-  actor: 'actor',
-  policy: 'policy',
-  externalSystem: 'externalSystem',
-  readModel: 'readModel',
-  aggregate: 'aggregate',
-}
+export const KIND_TO_GLOSSARY_ID = Object.fromEntries(
+  ENTRIES.filter((e) => e.kind).map((e) => [e.kind, e.id]),
+) as Record<CardKind, string>
 
 /** 種別から定義エントリを引く（凡例・付箋 i 用）。 */
 export function glossaryForKind(kind: CardKind): GlossaryEntry {

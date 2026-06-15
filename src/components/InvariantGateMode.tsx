@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type {
   AggregateState,
   CardKind,
@@ -16,6 +16,10 @@ interface Props {
   /** 付箋の i ボタンで種別の定義を開く */
   onInfo?: (kind: CardKind) => void
 }
+
+// 判断後の演出が消えるまでの時間（ms）。CSS の aggregate-panel.ok/reject と対応。
+const FLASH_MS = 600
+const FEEDBACK_MS = 1400
 
 /**
  * MODE3 不変条件ゲート。
@@ -46,6 +50,17 @@ export function InvariantGateMode({
   const step = stage.steps[idx]
   const done = idx >= stage.steps.length
 
+  // 演出のクリアタイマー。アンマウント/ステージ遷移時に積み残しを掃除する
+  // （挙動は不変＝毎判断で従来どおり張り直し、消えるタイミングも同じ）。
+  const timersRef = useRef<number[]>([])
+  useEffect(() => {
+    const timers = timersRef.current
+    return () => {
+      for (const t of timers) clearTimeout(t)
+      timers.length = 0
+    }
+  }, [])
+
   function decide(decision: boolean) {
     if (done) return
     const passes = commandPasses(state, step)
@@ -60,8 +75,10 @@ export function InvariantGateMode({
           : { kind: 'reject', text: `弾いた — ${step.rejectReason}` },
       )
       const nextIdx = idx + 1
-      setTimeout(() => setFlash(null), 600)
-      setTimeout(() => setFeedback(null), 1400)
+      timersRef.current.push(
+        window.setTimeout(() => setFlash(null), FLASH_MS),
+        window.setTimeout(() => setFeedback(null), FEEDBACK_MS),
+      )
       if (nextIdx >= stage.steps.length) {
         onCorrect(mistakes, usedHint) // 最終正解は handleCorrect が 'correct' を鳴らす
       } else {

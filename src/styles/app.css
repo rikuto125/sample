@@ -1,5 +1,17 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
+/* ボタンの素リセット（色は持たせない＝EventStorming 標準色は cardMeta から runtime で流す） */
+.btn-reset { background: none; border: none; padding: 0; }
+
+/* MODE2 トレイの選択枠（UI アクセント色のみ。記法標準色は使わない） */
+.tray-card {
+  background: none;
+  border: 3px solid transparent;
+  border-radius: calc(var(--radius-sticky) + 3px);
+  padding: 0;
+}
+.tray-card.selected { border-color: var(--accent); }
+
 html, body {
   height: 100%;
 }
