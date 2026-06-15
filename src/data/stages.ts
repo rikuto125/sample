@@ -233,9 +233,9 @@ export const STAGES: Stage[] = [
     icon: '📦',
     modeLabel: 'MODE 3 不変条件ゲート',
     scenario:
-      '📜 タスク管理アプリ。「タスク」は集約（淡黄📦）— 不変条件を守る一貫性の境界だ。コマンドは必ず集約を通る。集約がOKを出せばイベント（事実）が生まれる。まずは素直に通るケースから。',
+      '📜 タスク管理アプリ。「タスク」は集約— 不変条件を守る一貫性の境界だ。コマンドは必ず集約を通り、集約がルールに照らして発行可否を決める。',
     instruction:
-      '📦 集約に届いたコマンドを1つずつ確認。不変条件を満たすなら「通す」、破るなら「拒否」を選ぼう',
+      '届いたコマンドは、今の集約の状態で不変条件を満たすか？ 満たすなら通し、破るなら弾く。',
     aggregateJa: 'タスク',
     initialState: { postponeCount: 0, done: 0 },
     aggregateVocab: { id: 'v-aggregate', ...refVocab('aggregate') },
@@ -284,9 +284,9 @@ export const STAGES: Stage[] = [
     icon: '🚫',
     modeLabel: 'MODE 3 不変条件ゲート',
     scenario:
-      '📜 「タスクは最大3回まで延期できる」という不変条件がある（DDD書籍のMAX_POSTPONE_COUNT=3）。同じ「延期する」コマンドでも、集約の状態が進むと——4回目は集約が拒否する。状態を追いながら判断しよう。',
+      '📜 タスクには「延期は最大3回まで」という不変条件がある。同じ「延期する」コマンドが届き続ける。集約の今の状態を見て、その都度どうなるか判断しよう。',
     instruction:
-      '📦 同じコマンドでも集約の状態次第で通る/拒否が変わる。今の延期回数を見て判断！',
+      '今の延期回数と不変条件を照らし合わせて、このコマンドを通すか弾くか決める。',
     aggregateJa: 'タスク',
     initialState: { postponeCount: 0, done: 0 },
     aggregateVocab: {
@@ -344,9 +344,9 @@ export const STAGES: Stage[] = [
     icon: '🏁',
     modeLabel: 'MODE 3 不変条件ゲート',
     scenario:
-      '📜 タスクには複数の不変条件がある。「完了済みなら延期も着手もできない」。状態遷移 UNDONE→DONE が起きると、許されるコマンドが変わる。集約の番人っぷりを総仕上げで体験しよう。',
+      '📜 タスクには複数の不変条件がある。延期回数の上限に加え、状態遷移 UNDONE→DONE が起きると許されるコマンドが変わる。状態を追いながら総仕上げ。',
     instruction:
-      '📦 完了の前後で何が通り何が拒否されるか。状態遷移を追って正しく判断！',
+      '今の状態（延期回数・完了したか）と不変条件を照らして、コマンドごとに通すか弾くか決める。',
     aggregateJa: 'タスク',
     initialState: { postponeCount: 1, done: 0 },
     aggregateVocab: {
