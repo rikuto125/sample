@@ -107,7 +107,11 @@ describe('iOS switch 触覚ハック', () => {
     }
     haptics.fire('correct')
     HTMLElement.prototype.click = origClick
-    expect(document.getElementById('sq-haptic-switch')).not.toBeNull()
+    const checkbox = document.getElementById('sq-haptic-switch')
+    expect(checkbox).not.toBeNull()
+    // checkbox は label の子で switch 属性を持つ（ネイティブ switch＝触覚源）
+    expect(checkbox?.parentElement?.tagName).toBe('LABEL')
+    expect(checkbox?.hasAttribute('switch')).toBe(true)
     expect(clicks).toContain('label')
   })
 })

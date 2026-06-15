@@ -101,30 +101,34 @@ class VibrateHaptics implements Haptics {
     if (enabled && isIOS()) this.ensureSwitch() // 初回操作中に要素を用意
   }
 
-  /** iOS 用の隠し switch + label を1度だけ生成。 */
+  /**
+   * iOS 用の隠し switch + label を1度だけ生成。
+   * web-haptics ライブラリの手法に準拠:
+   * - checkbox は label の「子」にする（for/id だけでなく内包）
+   * - 隠すのは display:none（off-screen / opacity:0 / pointer-events:none は
+   *   ネイティブ switch を無効化し触覚が出なくなるので使わない）
+   * - checkbox に all:initial + appearance:auto を当て、ネイティブ switch を描画させる
+   *   （触覚はこのネイティブ switch のトグルから生じる）
+   */
   private ensureSwitch(): void {
     if (this.hapticLabel || typeof document === 'undefined') return
     try {
       const id = 'sq-haptic-switch'
-      const checkbox = document.createElement('input')
-      checkbox.type = 'checkbox'
-      checkbox.setAttribute('switch', '') // Safari の switch トグル＝触覚を伴う
-      checkbox.id = id
-      checkbox.setAttribute('aria-hidden', 'true')
-      checkbox.tabIndex = -1
       const label = document.createElement('label')
       label.setAttribute('for', id)
       label.setAttribute('aria-hidden', 'true')
-      // 視覚外・操作不可に隠す（盤面に影響させない）
-      for (const el of [checkbox, label]) {
-        el.style.position = 'fixed'
-        el.style.left = '-9999px'
-        el.style.width = '1px'
-        el.style.height = '1px'
-        el.style.opacity = '0'
-        el.style.pointerEvents = 'none'
-      }
-      document.body.appendChild(checkbox)
+      label.style.display = 'none'
+
+      const checkbox = document.createElement('input')
+      checkbox.type = 'checkbox'
+      checkbox.setAttribute('switch', '') // Safari のネイティブ switch（触覚を伴う）
+      checkbox.id = id
+      checkbox.tabIndex = -1
+      checkbox.style.all = 'initial'
+      checkbox.style.appearance = 'auto'
+      checkbox.style.display = 'none'
+
+      label.appendChild(checkbox)
       document.body.appendChild(label)
       this.hapticLabel = label
     } catch {
@@ -144,7 +148,8 @@ class VibrateHaptics implements Haptics {
       }
       return
     }
-    // 経路2: iOS の switch 触覚ハック（パターン不可・単発トグル）
+    // 経路2: iOS の switch 触覚ハック。ネイティブ switch のトグルから触覚が出る。
+    // ユーザー操作（タップ）ハンドラ内で同期的に click する必要がある。
     if (isIOS()) {
       this.ensureSwitch()
       try {
