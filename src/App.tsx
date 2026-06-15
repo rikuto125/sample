@@ -8,7 +8,6 @@ import { ResultScreen } from './components/ResultScreen'
 import { CompleteScreen } from './components/CompleteScreen'
 import { Onboarding } from './components/Onboarding'
 import { Icon } from './components/Icon'
-import { Star } from 'lucide-react'
 
 function SoundToggle() {
   // 設定はゲーム状態でないので store(reducer) を汚さずローカルに持つ。
@@ -50,7 +49,7 @@ function AppBar() {
       </span>
       <SoundToggle />
       <span className="stars-pill" aria-label={`累計 ${totalStars(state.progress)} スター`}>
-        <Star size={14} fill="currentColor" strokeWidth={2} aria-hidden />{' '}
+        <Icon name="star" size={14} fill="currentColor" strokeWidth={2} />{' '}
         {totalStars(state.progress)}
       </span>
     </header>

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   DndContext,
   PointerSensor,
@@ -40,6 +40,16 @@ export function TimelineMode({ stage, onCorrect, onMistake }: Props) {
   const [mistakes, setMistakes] = useState(0)
   const [usedHint, setUsedHint] = useState(false)
   const [showHint, setShowHint] = useState(false)
+  // 演出タイマーの積み残しをアンマウント/ステージ遷移時に掃除する（StrictMode
+  // の dev 二重マウントでも timersRef が空のため no-op で安全）。
+  const timersRef = useRef<number[]>([])
+  useEffect(() => {
+    const timers = timersRef.current
+    return () => {
+      for (const t of timers) clearTimeout(t)
+      timers.length = 0
+    }
+  }, [])
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -62,7 +72,7 @@ export function TimelineMode({ stage, onCorrect, onMistake }: Props) {
     setHand((h) => h.filter((c) => c.id !== card.id))
     setPlaced((p) => [...p, card])
     setJustPlaced(card.id)
-    window.setTimeout(() => setJustPlaced(null), 220)
+    timersRef.current.push(window.setTimeout(() => setJustPlaced(null), 220))
   }
 
   function removeToHand(card: Card) {
