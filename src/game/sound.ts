@@ -1,14 +1,26 @@
-// 効果音エンジン。WebAudio で軽量生成（mp3 資産ゼロ＝無料/静的ホスティング向き）。
+// 効果音エンジン。音源ファイル（CC0/再配布OK）を decodeAudioData で再生し、
+// 読み込めない cue は WebAudio 生成にフォールバックする。
 //
 // 不変原則:
 // - 音 OFF でも ★3 達成可能（scoreStars は音と完全独立。ここは表示専用の副作用）。
 // - 設定は Progress とは別キー 'stormquest.sound' に隔離（VERSION=1 スキーマ不変）。
 // - AudioContext は自動再生制約のため初回ユーザー操作まで生成しない（lazy）。
 // - jsdom/SSR で AudioContext が無くても no-op で握りつぶす（テストを落とさない）。
+// - 音源の読み込み失敗（404/decode 不可）はフォールバック合成で握りつぶす。
 
 export type SoundName = 'snap' | 'correct' | 'mistake' | 'star' | 'fanfare'
 
 const SETTING_KEY = 'stormquest.sound'
+
+// cue → 音源ファイル（public/sounds/ 配下、base 込みで解決）。
+// 未登録の cue は WebAudio 合成にフォールバックする。
+// 出典: Onoma-Pop04（再配布OK・商用OK）。詳細は public/sounds/CREDITS.md。
+const SAMPLE_URLS: Partial<Record<SoundName, string>> = {
+  snap: 'sounds/pop.mp3',
+  correct: 'sounds/pop.mp3',
+  star: 'sounds/pop.mp3',
+  // mistake / fanfare は合成のまま（pop は否定音/ファンファーレに不向き）
+}
 
 export function loadSoundEnabled(): boolean {
   try {
@@ -49,9 +61,46 @@ export interface SoundEngine {
 class WebAudioEngine implements SoundEngine {
   private enabled: boolean
   private ctx: AudioContext | null = null
+  // デコード済みバッファ（url → buffer）。読み込み失敗は null で記録し合成に落とす。
+  private buffers = new Map<string, AudioBuffer | null>()
 
   constructor() {
     this.enabled = loadSoundEnabled()
+  }
+
+  /** 音源を取得・デコードしてキャッシュ（失敗時は null＝以後フォールバック）。 */
+  private async loadSample(url: string): Promise<void> {
+    if (this.buffers.has(url)) return
+    const ctx = this.ensureCtx()
+    if (!ctx) return
+    const base = (import.meta.env.BASE_URL ?? '/').replace(/\/?$/, '/')
+    try {
+      const res = await fetch(base + url)
+      if (!res.ok) throw new Error(`fetch ${res.status}`)
+      const arr = await res.arrayBuffer()
+      const buf = await ctx.decodeAudioData(arr)
+      this.buffers.set(url, buf)
+    } catch {
+      this.buffers.set(url, null) // 以後この cue は合成にフォールバック
+    }
+  }
+
+  /** デコード済みバッファを再生。未ロード/失敗なら false を返す（合成に委ねる）。 */
+  private playSample(url: string, gain = 0.7, at = 0): boolean {
+    const ctx = this.ensureCtx()
+    if (!ctx) return false
+    const buf = this.buffers.get(url)
+    if (!buf) {
+      void this.loadSample(url) // 次回用に取りに行く（今回は合成にフォールバック）
+      return false
+    }
+    const src = ctx.createBufferSource()
+    const g = ctx.createGain()
+    g.gain.value = gain
+    src.buffer = buf
+    src.connect(g).connect(ctx.destination)
+    src.start(ctx.currentTime + at)
+    return true
   }
 
   isEnabled(): boolean {
@@ -61,8 +110,14 @@ class WebAudioEngine implements SoundEngine {
   setEnabled(enabled: boolean): void {
     this.enabled = enabled
     saveSoundEnabled(enabled)
-    // ON にした瞬間のユーザー操作で AudioContext を unlock（自動再生制約）
-    if (enabled) this.ensureCtx()
+    if (enabled) {
+      // ON にした瞬間のユーザー操作で AudioContext を unlock（自動再生制約）
+      this.ensureCtx()
+      // 先読み（初回イベントが合成フォールバックにならないように）
+      for (const url of new Set(Object.values(SAMPLE_URLS))) {
+        void this.loadSample(url)
+      }
+    }
   }
 
   private ensureCtx(): AudioContext | null {
@@ -113,6 +168,9 @@ class WebAudioEngine implements SoundEngine {
   play(name: SoundName): void {
     if (!this.enabled) return
     if (!this.ensureCtx()) return
+    // 音源があれば再生。未ロード/失敗なら合成にフォールバック。
+    const url = SAMPLE_URLS[name]
+    if (url && this.playSample(url)) return
     switch (name) {
       case 'snap': // 「コトッ」低め・木質、ピッチ固定（射幸感を出さない）
         this.tone({ type: 'triangle', from: 180, durMs: 70, gain: 0.14 })
@@ -136,11 +194,12 @@ class WebAudioEngine implements SoundEngine {
     if (!this.enabled) return
     if (!this.ensureCtx()) return
     const count = Math.max(0, Math.min(3, n))
+    const url = SAMPLE_URLS.star
     for (let i = 0; i < count; i++) {
-      this.tone(
-        { type: 'square', from: 1200, durMs: 28, gain: 0.12 },
-        (i * 90) / 1000,
-      )
+      const at = (i * 90) / 1000
+      // 音源があれば連続再生、なければ合成クリック
+      if (url && this.playSample(url, 0.6, at)) continue
+      this.tone({ type: 'square', from: 1200, durMs: 28, gain: 0.12 }, at)
     }
   }
 
