@@ -11,46 +11,48 @@
   --es-readmodel: #a5d6a7;    --es-readmodel-ink: #0d2b0f;
   --es-aggregate: #fff59d;    --es-aggregate-ink: #3a3400;
 
-  /* (B) 背景・インク・面 — 紫に統一した温かいニュートラル */
-  --bg-outer: #17122e;
-  --paper: #faf8ff;
-  --board: #ffffff;
-  --scenario-bg: #f4f1ff;
-  --surface-sunken: #f1eefb;
-  --line: #e7e2f5;
-  --ink: #2a2540;
-  --ink-muted: #6b6499;
-  --ink-faint: #9a93bd;
+  /* (B) 背景・インク・面 — ウォーム・クラフト（クラフト紙＋濃いインク）。
+     「ホワイトボードに付箋」のメタファに忠実な温かいニュートラルで、AI 的なグロッシー感を排す。 */
+  --bg-outer: #1c1712;        /* 外周（PC余白）。温かいダーク・エスプレッソ */
+  --paper: #f7f1e6;           /* アプリ地。クラフト/クリーム紙 */
+  --board: #fcf8f0;           /* 盤面。付箋が映えるよう紙よりわずかに明るい温白 */
+  --scenario-bg: #f1e9d8;     /* シナリオ枠の温かい地 */
+  --surface-sunken: #efe7d6;  /* 凹み面（クリームの陰） */
+  --line: #e3d9c5;            /* 罫線・枠（温かいベージュ） */
+  --ink: #2b2622;             /* 本文（エスプレッソ）。paper 上で ≈11:1 */
+  --ink-muted: #6e6358;       /* 補助（温かいブラウングレー）。paper 上で ≈4.8:1 */
+  --ink-faint: #9b9184;       /* 装飾専用（非テキスト） */
 
   /* (C) ブランド・アクセント・状態色
-     付箋（カード7色）以外の配色はここに集約し、紫プライマリ＋ピンク差し色＋金（報酬）で
-     一貫した「楽しいが信頼できる」トーンに統一する。カード色は装飾に流用しない。 */
-  --accent: #6d4aff;          /* ブランド紫（CTA・フォーカス・選択） */
-  --accent-dark: #4326b8;     /* 濃紫（押下・グラデ） */
-  --accent-soft: #8f72ff;     /* 明紫（ダーク地のリンク等） */
-  --accent-tint: #ece7ff;     /* ドロップ可能ハイライトの地 */
-  --accent-2: #ff5c8a;        /* ピンク差し色（ヒーロー/進捗/祝福のエネルギー） */
-  --reward: #f5a623;          /* 報酬の金（星・達成数値）。カード色ではないブランド色 */
-  --reward-ink: #b56f0a;      /* 金の輪郭（白地で星のエッジを立てる） */
-  --reward-soft: #ffe7b3;     /* 金の淡色（ダーク地の星の抜き） */
+     付箋（カード7色）以外の配色はここに集約。ティール（青緑）プライマリ＋真鍮ゴールド（報酬）。
+     カード7色（橙/青/黄/薄紫/桃/緑）と色相が衝突しないティールを選ぶ。装飾にカード色を流用しない。 */
+  --accent: #167a7a;          /* ブランド・ティール（CTA・フォーカス・選択） */
+  --accent-dark: #0f5c5c;     /* 濃ティール（押下・濃地） */
+  --accent-soft: #2fa3a3;     /* 明ティール（ダーク地のリンク等） */
+  --accent-tint: #ddedea;     /* ドロップ可能ハイライトの地（淡ティール） */
+  --accent-2: #b9542f;        /* 差し色: テラコッタ（ごく一部のみ。多用しない） */
+  --reward: #c8922e;          /* 報酬の真鍮ゴールド（星・達成数値）。カード色ではないブランド色 */
+  --reward-ink: #9a6e1e;      /* 金の輪郭（明地で星のエッジを立てる） */
+  --reward-soft: #f0dcae;     /* 金の淡色（ダーク地の星の抜き） */
   --state-ok: #2e9e5b;
-  --state-ok-ink: #167a40;
-  --state-error: #d23b53;
-  --state-error-tint: #fdecef;
-  --state-warn: #ef6c00;
+  --state-ok-ink: #1c7a44;
+  --state-error: #c0392b;
+  --state-error-tint: #f7e4df;
+  --state-warn: #c97a16;
 
-  /* ブランド・グラデーション（全画面で同じランプを使い回し、ちぐはぐ感をなくす） */
-  --grad-brand: linear-gradient(135deg, #7a59ff, #4f2fcf);
-  --grad-joy: linear-gradient(120deg, #6d4aff 0%, #a04bff 55%, #ff5c8a 100%);
-  --grad-dark: linear-gradient(165deg, #221a4d 0%, #2c2068 60%, #3a2a8c 100%);
+  /* ブランド・グラデーション — グラデは「同系色の浅い陰影」だけに留める（多色グラデ＝AI感を排す）。
+     見た目はほぼ単色で、わずかな立体感のためだけに使う。 */
+  --grad-brand: linear-gradient(180deg, #1a8585, #126363);  /* CTA/appbar: 単一ティールの浅い陰影 */
+  --grad-joy: linear-gradient(165deg, #0f5c5c, #0b4444);    /* ヒーロー: 深いティール板（白文字 AA 確保） */
+  --grad-dark: linear-gradient(165deg, #103a37 0%, #0c2b29 100%); /* ダーク画面: 深いティール墨 */
 
-  /* (D) シャドウ・ボーダー — 紫みのある柔らかい影で統一 */
-  --shadow-sticky: 1px 3px 6px rgba(40, 24, 90, 0.22);
-  --shadow-sticky-drag: 0 12px 24px rgba(40, 24, 90, 0.32);
-  --shadow-card: 0 10px 28px rgba(67, 38, 184, 0.14);
-  --shadow-app: 0 24px 70px rgba(0, 0, 0, 0.5);
-  --border-subtle: 1px solid #ece7f9;
-  --border-slot: 2px dashed #c3b8e8;
+  /* (D) シャドウ・ボーダー — 温かい茶系の柔らかい影で統一（紫みを排す） */
+  --shadow-sticky: 1px 3px 6px rgba(60, 45, 28, 0.22);
+  --shadow-sticky-drag: 0 12px 24px rgba(60, 45, 28, 0.32);
+  --shadow-card: 0 10px 26px rgba(60, 45, 28, 0.14);
+  --shadow-app: 0 24px 70px rgba(0, 0, 0, 0.55);
+  --border-subtle: 1px solid #ebe2d2;
+  --border-slot: 2px dashed #cdbfa3;
 
   /* タイポ */
   --font-base: "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP",
