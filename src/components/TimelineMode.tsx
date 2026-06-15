@@ -20,6 +20,7 @@ import type { Card, TimelineStage } from '../game/types'
 import { checkTimeline } from '../game/engine'
 import { Sticky } from './Sticky'
 import { shuffle } from '../game/shuffle'
+import { soundEngine as sound } from '../game/sound'
 
 interface Props {
   stage: TimelineStage
@@ -27,14 +28,25 @@ interface Props {
   onMistake: (reason: string) => void
 }
 
-function SortableSticky({ card, slot }: { card: Card; slot: number }) {
+function SortableSticky({
+  card,
+  slot,
+  justLanded,
+}: {
+  card: Card
+  slot: number
+  justLanded: boolean
+}) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: card.id })
+  // 掴む juice（§4.2 scale1.08/rotate-4deg）。dnd-kit の translate に scale/rotate を合成。
+  const base = CSS.Transform.toString(transform) ?? ''
   return (
     <div
       ref={setNodeRef}
+      className={justLanded ? 'snap-land' : undefined}
       style={{
-        transform: CSS.Transform.toString(transform),
+        transform: isDragging ? `${base} scale(1.08) rotate(-4deg)` : base,
         transition,
         opacity: isDragging ? 0.5 : 1,
       }}
@@ -57,6 +69,7 @@ export function TimelineMode({ stage, onCorrect, onMistake }: Props) {
   )
   const [hand, setHand] = useState<Card[]>(initialHand)
   const [placed, setPlaced] = useState<Card[]>([])
+  const [justPlaced, setJustPlaced] = useState<string | null>(null)
   const [mistakes, setMistakes] = useState(0)
   const [usedHint, setUsedHint] = useState(false)
   const [showHint, setShowHint] = useState(false)
@@ -69,15 +82,20 @@ export function TimelineMode({ stage, onCorrect, onMistake }: Props) {
 
   function placeFromHand(card: Card) {
     if (card.isDistractor) {
-      setMistakes((m) => m + 1)
+      // ADR 0001: ダミーのタップは★を下げない（試行錯誤を罰しない）。
+      // 弾きトーストで種別を教える学習FBのみ。mistakes には数えない。
+      // 誤配置音は onMistake → handleMistake が鳴らす（二重発火させない）。
       onMistake(
         card.reason ??
           'それはイベントではありません。過去に起きた事実（〜した／された）だけを置けます。',
       )
       return
     }
+    sound.play('snap')
     setHand((h) => h.filter((c) => c.id !== card.id))
     setPlaced((p) => [...p, card])
+    setJustPlaced(card.id)
+    window.setTimeout(() => setJustPlaced(null), 220)
   }
 
   function removeToHand(card: Card) {
@@ -131,7 +149,11 @@ export function TimelineMode({ stage, onCorrect, onMistake }: Props) {
                   aria-label={`${card.labelJa} を手札に戻す`}
                   style={{ background: 'none', border: 'none', padding: 0 }}
                 >
-                  <SortableSticky card={card} slot={i} />
+                  <SortableSticky
+                    card={card}
+                    slot={i}
+                    justLanded={justPlaced === card.id}
+                  />
                 </button>
               ))}
             </div>

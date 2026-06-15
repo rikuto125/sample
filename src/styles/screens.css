@@ -88,6 +88,8 @@
 }
 .trigger-slot.active { border-color: var(--accent); background: var(--accent-tint); animation: pulse 1.2s infinite; }
 .trigger-slot.filled { border-style: solid; border-color: var(--state-ok); }
+/* MODE2 接続成立の演出（赤破線→緑実線の発光、§4.2 250ms） */
+.trigger-slot.just-linked { animation: wireConnect 250ms var(--ease-out) 1; }
 .connector { color: var(--ink-muted); font-weight: 800; font-size: 1.2rem; }
 .tray { margin: var(--space-md) 0; }
 

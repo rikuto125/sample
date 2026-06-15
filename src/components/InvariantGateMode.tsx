@@ -6,6 +6,7 @@ import type {
 } from '../game/types'
 import { commandPasses, applyCommand } from '../game/engine'
 import { CARD_META } from '../game/cardMeta'
+import { soundEngine as sound } from '../game/sound'
 
 interface Props {
   stage: InvariantGateStage
@@ -59,8 +60,9 @@ export function InvariantGateMode({
       setTimeout(() => setFlash(null), 600)
       setTimeout(() => setFeedback(null), 1400)
       if (nextIdx >= stage.steps.length) {
-        onCorrect(mistakes, usedHint)
+        onCorrect(mistakes, usedHint) // 最終正解は handleCorrect が 'correct' を鳴らす
       } else {
+        sound.play('snap') // 途中の正しい判断
         setIdx(nextIdx)
       }
     } else {

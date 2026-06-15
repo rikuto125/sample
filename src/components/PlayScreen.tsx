@@ -3,6 +3,7 @@ import { STAGES } from '../data/stages'
 import { useStore, commitClear } from '../store'
 import { scoreStars } from '../game/engine'
 import { track } from '../game/analytics'
+import { soundEngine as sound } from '../game/sound'
 import { GLOSSARY, glossaryForKind } from '../game/glossary'
 import type { CardKind, GlossaryEntry, Stage } from '../game/types'
 import { TimelineMode } from './TimelineMode'
@@ -55,11 +56,13 @@ export function PlayScreen() {
   function handleCorrect(mistakes: number, usedHint: boolean) {
     const stars = scoreStars({ mistakes, usedHint })
     const progress = commitClear(state, stage.id, stars, stage.vocab.id)
-    track('stage_clear', { stage: stage.id, stars })
+    sound.play('correct')
+    track('stage_clear', { stage: stage.id, stars, mistakes, usedHint })
     dispatch({ type: 'clearStage', stars, progress })
   }
 
   function handleMistake(reason: string) {
+    sound.play('mistake')
     track('stage_retry', { stage: stage.id })
     showToast(reason, 'error')
   }

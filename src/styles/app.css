@@ -67,6 +67,17 @@ button { font-family: inherit; cursor: pointer; }
   font-size: var(--fs-caption);
   font-weight: 700;
 }
+/* 音 ON/OFF トグル（状態は色でなくアイコン🔊/🔇形状で示す）。タップ標的 ≥44px */
+.snd-toggle {
+  background: rgba(255,255,255,.16);
+  border: 1px solid rgba(255,255,255,.3);
+  border-radius: var(--radius-pill);
+  color: #fff;
+  min-width: 44px; min-height: 36px;
+  padding: 4px 10px; margin-right: var(--space-2xs);
+  font-size: var(--fs-body); cursor: pointer; line-height: 1;
+}
+.snd-toggle:active { transform: translateY(1px); }
 
 .screen { flex: 1; padding: var(--space-lg) var(--space-md); padding-bottom: calc(var(--space-xl) + env(safe-area-inset-bottom)); }
 
@@ -256,3 +267,32 @@ button { font-family: inherit; cursor: pointer; }
   100% { transform: scale(1); }
 }
 .pulse { animation: pulse var(--motion-emphasis) var(--ease-out); }
+
+/* ===== juice アニメ（#1）。色は既存トークンのみ・独自色を足さない ===== */
+/* 着地スナップ overshoot 4%（§4.2） */
+@keyframes snapOvershoot { 0% { transform: scale(1); } 55% { transform: scale(1.04); } 100% { transform: scale(1); } }
+.snap-land { animation: snapOvershoot var(--motion-base) var(--ease-out); }
+
+/* MODE2 接続 ?→✓・破線→実線（§4.2 250ms） */
+@keyframes wireConnect { 0% { box-shadow: 0 0 0 0 rgba(46,125,50,0); } 50% { box-shadow: 0 0 0 4px rgba(46,125,50,.35); } 100% { box-shadow: 0 0 0 0 rgba(46,125,50,0); } }
+
+/* ★ポップ（§3.1 150ms 拡大のみ） */
+@keyframes starPop { 0% { transform: scale(.6); opacity: 0; } 60% { transform: scale(1.15); opacity: 1; } 100% { transform: scale(1); } }
+.star-pop { display: inline-block; animation: starPop 150ms var(--ease-out) both; }
+
+/* 全クリア祝福フラッシュ 1回（§4.2 控えめ） */
+@keyframes celebrateFlash { 0% { background: rgba(255,255,255,.18); } 100% { background: transparent; } }
+.celebrate::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  animation: celebrateFlash 700ms var(--ease-out) 1;
+}
+
+/* prefers-reduced-motion: 全 juice アニメを確実に停止。
+   tokens.css は duration を 0.01ms!important にするだけ＝name が残る infinite が
+   高頻度で回りうるため、shorthand animation:none!important で名前ごと止める（§6.6）。 */
+@media (prefers-reduced-motion: reduce) {
+  .snap-land, .pulse, .shake, .star-pop, .celebrate::before,
+  .trigger-slot.just-linked, .trigger-slot.active {
+    animation: none !important;
+  }
+}
