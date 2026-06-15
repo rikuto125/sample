@@ -1,10 +1,18 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { haptics, loadVibeEnabled, saveVibeEnabled } from './haptics'
+import {
+  haptics,
+  loadVibeEnabled,
+  saveVibeEnabled,
+  isIOS,
+} from './haptics'
 
 afterEach(() => {
   localStorage.clear()
   haptics.setEnabled(false)
   vi.restoreAllMocks()
+  document.querySelectorAll('#sq-haptic-switch, label[for=sq-haptic-switch]').forEach((el) =>
+    el.remove(),
+  )
 })
 
 describe('haptics — no-op 安全性', () => {
@@ -57,5 +65,49 @@ describe('haptics 設定の永続化（音とは別キー）', () => {
     expect(loadVibeEnabled()).toBe(false)
     localStorage.setItem('stormquest.vibe', '1')
     expect(loadVibeEnabled()).toBe(true)
+  })
+})
+
+describe('iOS switch 触覚ハック', () => {
+  function stubIOS() {
+    // vibrate 非対応 + iPhone UA に偽装
+    vi.stubGlobal('navigator', {
+      ...navigator,
+      vibrate: undefined,
+      userAgent:
+        'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15',
+      maxTouchPoints: 5,
+    })
+    // reduced-motion を false に
+    Object.defineProperty(window, 'matchMedia', {
+      value: () => ({ matches: false, addEventListener() {}, removeEventListener() {} }),
+      configurable: true,
+    })
+  }
+
+  it('isIOS が iPhone UA で true', () => {
+    stubIOS()
+    expect(isIOS()).toBe(true)
+  })
+
+  it('isSupported は iOS でも true（トグルを出す）', () => {
+    stubIOS()
+    expect(haptics.isSupported()).toBe(true)
+  })
+
+  it('fire で隠し switch label が生成され click される', () => {
+    stubIOS()
+    haptics.setEnabled(true)
+    const clicks: string[] = []
+    // label.click を監視（jsdom は switch 触覚を出さないが click 呼び出しは検証可）
+    const origClick = HTMLElement.prototype.click
+    HTMLElement.prototype.click = function () {
+      if (this instanceof HTMLLabelElement) clicks.push('label')
+      return origClick.call(this)
+    }
+    haptics.fire('correct')
+    HTMLElement.prototype.click = origClick
+    expect(document.getElementById('sq-haptic-switch')).not.toBeNull()
+    expect(clicks).toContain('label')
   })
 })
