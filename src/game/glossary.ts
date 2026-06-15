@@ -12,6 +12,9 @@ import type { CardKind, GlossaryEntry, VocabEntry } from './types'
  *
  * def は CONTEXT.md の定義「本文」（句点で終わる第1文）。章注記や混同防止の
  * 注記は note へ分離する（本文には混ぜない＝表示と回帰テストを単純に保つ）。
+ *
+ * intuition（用語の前に置く直感の足場）も def 同様 CONTEXT.md が正・手書き禁止。
+ * 読めている語（actor/policy/externalSystem/readModel）には付けない。
  */
 export const GLOSSARY: Record<string, GlossaryEntry> = {
   // ---- EventStorming 記法7種（kind を持つ）----
@@ -21,6 +24,10 @@ export const GLOSSARY: Record<string, GlossaryEntry> = {
     en: 'Domain Event',
     kind: 'event',
     def: 'ビジネス上で「過去に起きた事実」。必ず過去形（〜した／〜された）。',
+    intuition: {
+      hook: 'お願いが通って「もう起きてしまった」こと。「入店した」「1杯出た」— あとから取り消せない過去の事実。',
+      same: 'ドメインイベントも同じ。実際に起きてしまった事実で、過去形（〜した／された）でしか言えない。番人が弾けば何も起きない＝発行されない。',
+    },
   },
   command: {
     id: 'command',
@@ -28,6 +35,10 @@ export const GLOSSARY: Record<string, GlossaryEntry> = {
     en: 'Command',
     kind: 'command',
     def: 'システムへの指示・意図。「〜する」と現在形。イベント（事実）とは時制で見分ける。',
+    intuition: {
+      hook: '客が用心棒にする「お願い」。「入れて」「もう1杯」— まだ通っていない、ただの頼みごと。',
+      same: 'コマンドも同じ。「〜する」という意図・指示で、通るかは番人が決める。起こすのは客（アクター）とは限らず、ハウスルール（ポリシー）や外の店（外部システム）のこともある。',
+    },
   },
   actor: {
     id: 'actor',
@@ -64,6 +75,10 @@ export const GLOSSARY: Record<string, GlossaryEntry> = {
     kind: 'aggregate',
     def: '集約不変条件を守る一貫性の境界。コマンドは集約を通り、ルールを満たせばイベントを発行する。',
     note: '第2章で扱う記法。',
+    intuition: {
+      hook: 'クラブの用心棒。客の状態とハウスルールを見て、お願いを通す／弾く。',
+      same: '集約も同じ。中のルールを自分で守りきる「一貫性のかたまり（境界）」で、外から状態を直接いじれない。コマンドは必ずこの番人を通る。',
+    },
   },
 
   // ---- 補助用語（CardKind を持たない。icon は CONTEXT.md 準拠、色は付けない）----
@@ -74,6 +89,10 @@ export const GLOSSARY: Record<string, GlossaryEntry> = {
     icon: '🛡️',
     def: '集約が常に守るドメインのルール（例「延期は最大3回」）。破るコマンドは集約に拒否される。',
     note: 'Phase 8 の「孤立コマンドをゼロにする」モデリング規約とは別物（あちらはモデリング規約、こちらは集約のドメインルール）。',
+    intuition: {
+      hook: '用心棒が絶対に曲げない入店ルール。「1人3杯まで」を超えるお願いは必ず弾かれる。',
+      same: '集約不変条件も同じ。何があっても破られないハウスルールで、破るコマンドは必ず拒否される（例「延期は最大3回」）。',
+    },
   },
   stateTransition: {
     id: 'stateTransition',

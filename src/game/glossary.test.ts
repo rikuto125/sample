@@ -82,3 +82,34 @@ describe('GLOSSARY — 題材語を用語として混ぜない（ネガティブ
     }
   })
 })
+
+describe('GLOSSARY — 直感(intuition)の足場', () => {
+  const withIntuition = Object.values(GLOSSARY).filter((e) => e.intuition)
+
+  it('intuition を持つのは想定4語のみ（読めている語に足さない＝過剰適用検出）', () => {
+    const ids = withIntuition.map((e) => e.id).sort()
+    expect(ids).toEqual(
+      ['aggregate', 'aggregateInvariant', 'command', 'event'].sort(),
+    )
+  })
+
+  it('hook / same はともに非空', () => {
+    for (const e of withIntuition) {
+      expect(e.intuition!.hook.length, `${e.id} の hook が空`).toBeGreaterThan(0)
+      expect(e.intuition!.same.length, `${e.id} の same が空`).toBeGreaterThan(0)
+    }
+  })
+
+  it('intuition.same は def の逐語コピーでない（比喩は定義の劣化複製でない＝誠実さ）', () => {
+    for (const e of withIntuition) {
+      expect(e.intuition!.same, `${e.id}`).not.toBe(e.def)
+    }
+  })
+
+  it('集約の intuition は「境界/番人/守る」のいずれかを含む（箱/入れ物の誤比喩を機械検出）', () => {
+    const same = GLOSSARY.aggregate.intuition!.same
+    expect(/境界|番人|守|ルール/.test(same), same).toBe(true)
+    expect(same.includes('箱'), '集約を「箱」と表現しない').toBe(false)
+    expect(same.includes('入れ物'), '集約を「入れ物」と表現しない').toBe(false)
+  })
+})

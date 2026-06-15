@@ -27,10 +27,11 @@ export function DefinitionSheet({ entry, via, onClose }: DefinitionSheetProps) {
   // 開く直前のフォーカスを保存し、閉じたら呼び出し元（チップ/付箋i/本文語）へ戻す
   const returnFocusRef = useRef<Element | null>(null)
 
-  // 開封を1回だけ計測（DESIGN.md §6 用語ポップ開封率）
+  // 開封を1回だけ計測（DESIGN.md §6 用語ポップ開封率）。
+  // hasIntuition: 比喩あり用語の開封が完走/リトライ減に効くかの内訳分析用。
   useEffect(() => {
-    track('vocab_opened', { term: entry.id, via })
-  }, [entry.id, via])
+    track('vocab_opened', { term: entry.id, via, hasIntuition: !!entry.intuition })
+  }, [entry.id, via, entry.intuition])
 
   useEffect(() => {
     returnFocusRef.current = document.activeElement
@@ -88,6 +89,17 @@ export function DefinitionSheet({ entry, via, onClose }: DefinitionSheetProps) {
             ×
           </button>
         </div>
+        {/* 直感の足場は正式定義の「前」に置く。色は付けず淡色＋左ボーダーで
+            「定義ではない補助」と階層化。aria-describedby には含めず、
+            スクリーンリーダーは正式定義(def)を主として読む。 */}
+        {entry.intuition && (
+          <div className="def-intuition">
+            <p className="def-intuition-hook">
+              👋 たとえるなら: {entry.intuition.hook}
+            </p>
+            <p className="def-intuition-same">{entry.intuition.same}</p>
+          </div>
+        )}
         <p id={defId} className="def-body">
           {entry.def}
         </p>
