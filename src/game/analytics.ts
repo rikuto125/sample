@@ -15,7 +15,7 @@ type EventName =
   | 'chapter_complete'
   | 'share_clicked'
 
-interface AnalyticsEvent {
+export interface AnalyticsEvent {
   name: EventName
   props?: Record<string, string | number | boolean>
   t: number
@@ -27,16 +27,38 @@ declare global {
   }
 }
 
+/** 計測の追加 sink（GoatCounter 等）。track() を壊さず後付けする。 */
+export type Sink = (e: AnalyticsEvent) => void
+const sinks: Sink[] = []
+
+export function registerSink(sink: Sink): void {
+  sinks.push(sink)
+}
+
+/** テスト専用: 登録済み sink をクリア。 */
+export function __resetSinks(): void {
+  sinks.length = 0
+}
+
 export function track(
   name: EventName,
   props?: Record<string, string | number | boolean>,
 ): void {
   if (typeof window === 'undefined') return
+  const e: AnalyticsEvent = { name, props, t: Date.now() }
   window.__sq_events ??= []
-  window.__sq_events.push({ name, props, t: Date.now() })
-  // 開発時の可視化。本番ビルドでは呼ばれてもノイズにならない程度。
+  window.__sq_events.push(e)
+  // 開発時の可視化（送信経路ではない。送信は sink）。
   if (import.meta.env?.DEV) {
     // eslint-disable-next-line no-console
     console.debug('[analytics]', name, props ?? {})
+  }
+  // 追加 sink へ配送。計測がプレイを阻害しないよう必ず握りつぶす。
+  for (const s of sinks) {
+    try {
+      s(e)
+    } catch {
+      // ignore: 送信失敗はプレイに影響させない
+    }
   }
 }
