@@ -109,52 +109,87 @@
 }
 
 /* ===== MODE3 不変条件ゲート ===== */
+/* サーフェスは1色。概念色は左ボーダー＋バッジのアクセントだけに使う。
+   集約色は業界標準(淡黄)を維持し、読みやすさは ink 派生の左ボーダーで稼ぐ。 */
 .invariant-board { margin-top: var(--space-sm); }
+
+.gate-count { font-size: var(--fs-caption); font-weight: 800; color: var(--ink-muted); margin-bottom: var(--space-sm); }
+
 .aggregate-panel {
-  border: 3px solid;
+  background: var(--paper);
+  border: 1px solid var(--line, #e2e6ec);
+  border-left: 4px solid;
   border-radius: var(--radius-md);
-  overflow: hidden;
+  padding: var(--space-md);
   margin-bottom: var(--space-md);
-  background: var(--board);
-  box-shadow: var(--shadow-card);
   transition: box-shadow var(--motion-base);
 }
-.aggregate-panel.ok { box-shadow: 0 0 0 4px rgba(46,125,50,.4); }
-.aggregate-panel.reject { box-shadow: 0 0 0 4px rgba(198,40,40,.4); }
-.agg-head { font-weight: 900; padding: var(--space-xs) var(--space-sm); font-size: var(--fs-body); }
-.agg-state { display: flex; flex-wrap: wrap; gap: var(--space-xs); padding: var(--space-sm); }
-.state-chip {
-  background: var(--accent-tint); color: var(--accent-dark);
-  border-radius: var(--radius-pill); padding: 4px 12px;
-  font-size: var(--fs-body-sm); font-weight: 700;
-}
-.state-chip strong { font-size: var(--fs-body); }
-.agg-invariant {
-  background: #fff6e6; color: #6b4e00;
-  padding: var(--space-xs) var(--space-sm);
-  font-size: var(--fs-body-sm); font-weight: 700;
-}
+.aggregate-panel.ok { box-shadow: 0 0 0 3px rgba(46,125,50,.35); }
+.aggregate-panel.reject { box-shadow: 0 0 0 3px rgba(198,40,40,.35); }
 
-.gate-progress { display: flex; gap: 6px; justify-content: center; margin-bottom: var(--space-md); }
-.gate-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--accent-tint); }
-.gate-dot.cleared { background: var(--state-ok); }
-.gate-dot.current { background: var(--accent); animation: pulse 1.2s infinite; }
+.agg-head { display: flex; align-items: center; gap: var(--space-xs); margin-bottom: var(--space-sm); }
+.agg-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  border-radius: var(--radius-pill); padding: 3px 10px;
+  font-size: var(--fs-caption); font-weight: 800;
+}
+.agg-name { font-weight: 800; font-size: var(--fs-body); }
+
+.agg-state { display: flex; flex-wrap: wrap; gap: var(--space-xs); margin-bottom: var(--space-sm); }
+.state-pill {
+  background: var(--surface-sunken, #f4f6f9); border: 1px solid var(--line, #e2e6ec);
+  border-radius: var(--radius-sm); padding: 5px 10px;
+  font-size: var(--fs-body-sm); font-weight: 600;
+}
+.state-pill strong { font-size: var(--fs-body); }
+
+/* 不変条件 = 照合すべきルール。カードの主役として強調 */
+.agg-invariants { border-top: 1px dashed var(--line, #e2e6ec); padding-top: var(--space-sm); }
+.agg-invariants-label { font-size: var(--fs-caption); font-weight: 800; color: var(--ink-muted); margin-bottom: var(--space-2xs); }
+.agg-invariants ul { margin: 0; padding: 0; list-style: none; }
+.agg-invariants li { font-size: var(--fs-body); font-weight: 600; margin: var(--space-2xs) 0; padding-left: 1.2em; position: relative; }
+.agg-invariants li::before { content: "✓"; position: absolute; left: 0; font-weight: 800; color: var(--state-ok); }
 
 .incoming-command { text-align: center; margin-bottom: var(--space-md); }
-.incoming-label { display: block; font-size: var(--fs-caption); font-weight: 800; color: var(--ink-muted); margin-bottom: var(--space-2xs); }
-.incoming-command .sticky { display: inline-block; min-width: 200px; }
-.emits-hint { font-size: var(--fs-body-sm); color: var(--ink-muted); margin-top: var(--space-xs); font-weight: 700; }
+.incoming-ask { display: block; font-size: var(--fs-body-sm); font-weight: 700; color: var(--ink-muted); margin-bottom: var(--space-xs); }
+.cmd-card {
+  display: inline-flex; flex-direction: column; align-items: flex-start; gap: 4px;
+  background: var(--paper); border: 1px solid var(--line, #e2e6ec);
+  border-left: 4px solid;
+  border-radius: var(--radius-md); padding: var(--space-sm) var(--space-md);
+  min-width: 220px; text-align: left;
+}
+.cmd-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  border-radius: var(--radius-pill); padding: 3px 9px;
+  font-size: var(--fs-caption); font-weight: 800;
+}
+.cmd-label { font-size: var(--fs-heading); font-weight: 800; }
+/* 判断「後」の結果フィードバック（発行イベント / 弾いた理由）。判断前には出さない */
+.gate-feedback {
+  font-size: var(--fs-body-sm); font-weight: 700;
+  margin: 0 auto var(--space-md); max-width: 320px;
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-sm); text-align: center;
+  animation: toastIn var(--motion-base) var(--ease-out);
+}
+.gate-feedback.ok { background: #e9f5ea; color: var(--state-ok-ink); }
+.gate-feedback.reject { background: var(--state-error-tint); color: var(--state-error); }
 
 .gate-decision { display: flex; gap: var(--space-sm); margin-bottom: var(--space-md); }
 .gate-btn {
-  flex: 1; border: none; border-radius: var(--radius-md);
+  flex: 1; border-radius: var(--radius-md);
   padding: var(--space-md); font-size: var(--fs-body); font-weight: 800;
-  box-shadow: var(--shadow-card);
+  min-height: 56px;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  border: 1.5px solid;
   transition: transform var(--motion-fast) var(--ease-out);
 }
 .gate-btn:active { transform: translateY(1px) scale(0.98); }
-.gate-btn.pass { background: #e9f5ea; color: var(--state-ok-ink); border: 2px solid var(--state-ok); }
-.gate-btn.reject { background: var(--state-error-tint); color: var(--state-error); border: 2px solid var(--state-error); }
+/* 色だけに頼らず 記号(✓/⊘)＋ラベルで冗長化。赤はフル彩度を避け落ち着いたトーンに */
+.gate-icon { font-size: 1.15em; line-height: 1; }
+.gate-btn.pass { background: #e9f5ee; color: var(--state-ok-ink); border-color: var(--state-ok); }
+.gate-btn.reject { background: var(--state-error-tint); color: #8a1c1c; border-color: #b3261e; }
 
 /* ===== Result / Complete (dark) ===== */
 .screen-dark {

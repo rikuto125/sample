@@ -203,8 +203,17 @@ button { font-family: inherit; cursor: pointer; }
   font-size: var(--fs-body);
   margin-bottom: var(--space-md);
 }
-.instruction { font-size: var(--fs-heading); font-weight: 800; margin-bottom: var(--space-md); color: var(--accent-dark); }
+/* 指示は「今やること」。読みやすい通常ウェイトの黒に（青太字をやめる #3） */
+.instruction { font-size: var(--fs-body); font-weight: 600; margin-bottom: var(--space-md); color: var(--ink); }
 .modelabel { font-size: var(--fs-caption); font-weight: 800; letter-spacing: var(--ls-wide); color: var(--ink-muted); }
+
+/* 説明＋凡例は畳んで密度を下げる（#2）。既定は閉じる */
+.stage-brief { margin-bottom: var(--space-md); }
+.stage-brief > summary {
+  font-size: var(--fs-body-sm); font-weight: 700; color: var(--ink-muted);
+  cursor: pointer; padding: var(--space-2xs) 0; list-style-position: inside;
+}
+.stage-brief[open] > summary { margin-bottom: var(--space-sm); }
 
 /* ===== トースト ===== */
 .toast {

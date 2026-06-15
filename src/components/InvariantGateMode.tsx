@@ -32,6 +32,9 @@ export function InvariantGateMode({
   const [usedHint, setUsedHint] = useState(false)
   const [showHint, setShowHint] = useState(false)
   const [flash, setFlash] = useState<'ok' | 'reject' | null>(null)
+  // 判断「後」に出す結果フィードバック（通った→発行イベント / 弾いた→理由）。
+  // 判断「前」に答えを漏らさないため、ここでしか emitsEventJa / rejectReason を出さない。
+  const [feedback, setFeedback] = useState<string | null>(null)
 
   const aggMeta = CARD_META.aggregate
   const cmdMeta = CARD_META.command
@@ -47,8 +50,14 @@ export function InvariantGateMode({
       const { next } = applyCommand(state, step)
       setState(next)
       setFlash(passes ? 'ok' : 'reject')
+      setFeedback(
+        passes
+          ? `${eventMeta.icon} ${step.emitsEventJa}（イベント発行）`
+          : `⛔ 弾いた — ${step.rejectReason}`,
+      )
       const nextIdx = idx + 1
       setTimeout(() => setFlash(null), 600)
+      setTimeout(() => setFeedback(null), 1400)
       if (nextIdx >= stage.steps.length) {
         onCorrect(mistakes, usedHint)
       } else {
@@ -76,54 +85,55 @@ export function InvariantGateMode({
 
   return (
     <div className="invariant-board">
-      {/* 集約パネル（状態の見える化） */}
+      {/* 進捗（問題 n/N）— ヘッダ直下に置き、何の進捗かを明示 */}
+      <div className="gate-count" aria-label={`問題 ${Math.min(idx + 1, stage.steps.length)} / ${stage.steps.length}`}>
+        問題 {Math.min(idx + 1, stage.steps.length)} / {stage.steps.length}
+      </div>
+
+      {/* 集約の状態カード（最重要）。塗りつぶしでなく左ボーダー＋枠で色面積を抑える。
+          集約は「境界」なので枠線表現が概念とも一致する。 */}
       <div
         className={`aggregate-panel ${flash ?? ''}`}
-        style={{ borderColor: aggMeta.color }}
+        style={{ borderLeftColor: aggMeta.ink }}
       >
-        <div className="agg-head" style={{ background: aggMeta.color, color: aggMeta.ink }}>
-          <span aria-hidden>{aggMeta.icon}</span> 集約: {stage.aggregateJa}
+        <div className="agg-head">
+          <span className="agg-badge" style={{ background: aggMeta.color, color: aggMeta.ink }}>
+            <span aria-hidden>{aggMeta.icon}</span> 集約
+          </span>
+          <span className="agg-name">{stage.aggregateJa}</span>
         </div>
         <div className="agg-state" aria-label={`集約の状態 ${describeState(state)}`}>
           {'postponeCount' in state && (
-            <span className="state-chip">
+            <span className="state-pill">
               延期回数 <strong>{state.postponeCount}</strong> / 3
             </span>
           )}
           {'done' in state && (
-            <span className="state-chip">
-              状態 <strong>{state.done ? 'DONE（完了）' : 'UNDONE（未完了）'}</strong>
+            <span className="state-pill">
+              状態 <strong>{state.done ? '完了' : '未完了'}</strong>
             </span>
           )}
         </div>
-        <div className="agg-invariant">
-          🛡️ 不変条件: 延期は最大3回まで・完了済みは変更不可
+        {/* 不変条件 = 照合すべきルール。カードの主役として強調 */}
+        <div className="agg-invariants">
+          <div className="agg-invariants-label">守るべき不変条件</div>
+          <ul>
+            <li>延期は最大 3 回まで</li>
+            <li>完了済みのタスクは変更できない</li>
+          </ul>
         </div>
-      </div>
-
-      {/* 進捗 */}
-      <div className="gate-progress" aria-label={`${idx} / ${stage.steps.length} コマンド処理済`}>
-        {stage.steps.map((_, i) => (
-          <span
-            key={i}
-            className={`gate-dot ${i < idx ? 'cleared' : i === idx ? 'current' : ''}`}
-          />
-        ))}
       </div>
 
       {!done && (
         <>
+          {/* 届いたコマンド（「これを判定せよ」と明示。判断前のネタバレなし） */}
           <div className="incoming-command">
-            <span className="incoming-label">届いたコマンド</span>
-            <div
-              className="sticky"
-              style={{ background: cmdMeta.color, color: cmdMeta.ink }}
-            >
-              <span className="meta" style={{ color: cmdMeta.ink }}>
-                <span className="icon" aria-hidden>
-                  {cmdMeta.icon}
-                </span>
-                コマンド
+            <span className="incoming-ask">
+              このコマンドは通る？ 状態と不変条件を照らして判断
+            </span>
+            <div className="cmd-card" style={{ borderLeftColor: cmdMeta.ink }}>
+              <span className="cmd-badge" style={{ background: cmdMeta.color, color: cmdMeta.ink }}>
+                <span aria-hidden>{cmdMeta.icon}</span> コマンド
                 {onInfo && (
                   <button
                     type="button"
@@ -136,22 +146,24 @@ export function InvariantGateMode({
                   </button>
                 )}
               </span>
-              <span className="text">{step.labelJa}</span>
-            </div>
-            <div className="emits-hint">
-              通れば →{' '}
-              <span style={{ color: eventMeta.color }}>
-                {eventMeta.icon} {step.emitsEventJa}
-              </span>
+              <span className="cmd-label">{step.labelJa}</span>
             </div>
           </div>
 
+          {/* 判断「後」の結果フィードバック */}
+          {feedback && (
+            <div className={`gate-feedback ${flash ?? ''}`} role="status">
+              {feedback}
+            </div>
+          )}
+
+          {/* 2択：色だけに頼らず 記号(✓/⊘)＋ラベル で冗長化（色覚対応） */}
           <div className="gate-decision">
             <button className="gate-btn pass" onClick={() => decide(true)}>
-              ✅ 通す（イベント発行）
+              <span className="gate-icon" aria-hidden>✓</span> 通す
             </button>
             <button className="gate-btn reject" onClick={() => decide(false)}>
-              🚫 拒否する（不変条件違反）
+              <span className="gate-icon" aria-hidden>⊘</span> 弾く
             </button>
           </div>
         </>
@@ -165,12 +177,12 @@ export function InvariantGateMode({
             setUsedHint(true)
           }}
         >
-          💡 ヒント（星評価が下がります）
+          ヒント（★が下がる）
         </button>
         {showHint && (
           <p className="hint-text">
-            集約の「延期回数」と「状態」を見て、このコマンドのルール（延期は3回まで・
-            完了済みは変更不可）を破らないか確認しよう。破るなら拒否が正解。
+            集約の「延期回数」と「状態」を、上の不変条件と照らし合わせよう。
+            どれかを破るなら弾く、どれも破らないなら通す。
           </p>
         )}
       </div>

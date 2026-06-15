@@ -70,21 +70,8 @@ export function PlayScreen() {
       <h2 className="play-title">
         {stage.icon} {stage.name}
       </h2>
-      <Legend
-        kinds={
-          stage.mode === 'invariant'
-            ? ['event', 'command', 'aggregate']
-            : undefined
-        }
-        onOpenDef={(k) => openByKind(k, 'legend')}
-      />
-      <div className="scenario">
-        <RichText
-          text={stage.scenario}
-          terms={inlineTerms(stage)}
-          onOpenDef={(entry) => setDef({ entry, via: 'inline' })}
-        />
-      </div>
+
+      {/* 今やること（指示）はプレイ画面に常駐。説明＋凡例は畳んで密度を下げる（#2 情報設計） */}
       <p className="instruction">
         <RichText
           text={stage.instruction}
@@ -92,6 +79,25 @@ export function PlayScreen() {
           onOpenDef={(entry) => setDef({ entry, via: 'inline' })}
         />
       </p>
+
+      <details className="stage-brief">
+        <summary>この章の説明と記法</summary>
+        <div className="scenario">
+          <RichText
+            text={stage.scenario}
+            terms={inlineTerms(stage)}
+            onOpenDef={(entry) => setDef({ entry, via: 'inline' })}
+          />
+        </div>
+        <Legend
+          kinds={
+            stage.mode === 'invariant'
+              ? ['event', 'command', 'aggregate']
+              : undefined
+          }
+          onOpenDef={(k) => openByKind(k, 'legend')}
+        />
+      </details>
 
       {stage.mode === 'timeline' && (
         <TimelineMode
