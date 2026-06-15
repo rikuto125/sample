@@ -103,6 +103,23 @@ const ENTRIES: GlossaryEntry[] = [
     icon: 'transition',
     def: '集約の状態が変わること（例 UNDONE→DONE）。遷移後は許されるコマンドが変わる。',
   },
+  // ---- 第3章 補助用語（集約をまたぐ整合性。kind なし＝色は refVocab の kindOverride で）----
+  {
+    id: 'crossAggregateConsistency',
+    ja: '集約整合性',
+    en: 'Cross-Aggregate Consistency',
+    icon: 'box',
+    def: '複数の集約にまたがって守りたい整合性。1つの集約の出来事が、別の集約の状態を必ず引き起こす関係。',
+    note: '単一集約の不変条件（第2章）が「1つの境界の中のルール」なのに対し、これは「境界をまたぐ整合性」。',
+  },
+  {
+    id: 'crossingByDomainEvent',
+    ja: 'ドメインイベントによる越境',
+    en: 'Crossing by Domain Event',
+    icon: 'policy',
+    def: '集約をまたぐ整合性を「ドメインイベント」で確保する実装方法。ある集約がイベントを発行し、ポリシーがそれを拾って別の集約のコマンドを起こす。',
+    note: 'ユースケースに整合性ロジックを散らすより、整合性がドメイン層に閉じて「どこから呼んでも崩れない」利点がある。',
+  },
 ]
 
 /** 用語定義の単一ソース（id → entry）。ENTRIES から導出。 */
