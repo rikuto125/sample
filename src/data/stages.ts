@@ -401,6 +401,183 @@ export const STAGES: Stage[] = [
       long: 'EventStormingでこの集約を見つけたら、次はドメインモデル図で「タスク」集約の属性（postponeCount, status）と不変条件（吹き出し）を描く。ゲームで掴んだ感覚が、実際のモデリングにそのままつながる。',
     },
   },
+
+  // ============================================================
+  // 第3章 — サブスク課金ドメイン（集約をまたぐ整合性を“ドメインイベント”で繋ぐ）
+  //
+  // 第2章「単一集約の不変条件」の次に「複数集約の整合性は“ドメインイベント”で繋ぐ」へ。
+  // DDD-FAQ §5.1.4 実装方法3＝ある集約がイベントを発行し、ポリシーが別集約のコマンドを起こす。
+  // 重要: 時間（更新日の到来）そのものはポリシーでない。「更新日が到来した」を外部の時計が
+  // 起こした“事実（イベント）”として扱い、それに反応する「◯◯したら課金する」がポリシー。
+  // 既存3モード（timeline/trigger）のみ＝エンジン改変ゼロ。
+  // ============================================================
+
+  // ---- Stage 8: 申し込みから初回課金まで（越境の“順番”を掴む・正常系）----
+  {
+    id: 'ch3-s1',
+    mode: 'timeline',
+    name: '申し込みから初回課金まで',
+    icon: 'clock',
+    modeLabel: 'MODE 1 タイムライン',
+    scenario:
+      '顧客がプランに申し込み、サブスクリプションが開始した。やがて最初の更新日が到来し、それを受けて初回の課金が成立した。「顧客サブスクリプション」集約での出来事と、それに連なる「請求」集約の出来事——2つの集約をまたいで事実が流れる。',
+    instruction: '2つの集約をまたぐ事実を時系列に。越境の「順番」を掴もう',
+    events: [
+      {
+        id: 's1-subscribed',
+        kind: 'event',
+        labelJa: 'サブスクリプションが開始された',
+      },
+      { id: 's1-renewal-due', kind: 'event', labelJa: '更新日が到来した' },
+      { id: 's1-charged', kind: 'event', labelJa: '課金が成立した' },
+      { id: 's1-receipt', kind: 'event', labelJa: '領収書が発行された' },
+    ],
+    distractors: [],
+    orderConstraints: [
+      ['s1-subscribed', 's1-renewal-due'],
+      ['s1-renewal-due', 's1-charged'],
+      ['s1-charged', 's1-receipt'],
+    ],
+    vocab: { id: 'v-cross-consistency', ...refVocab('crossAggregateConsistency', 'aggregate') },
+    reality: {
+      short:
+        '「更新日が到来した」は時間が起こした“事実”。それを引き金に別集約（請求）の課金が走る——これが集約をまたぐ流れ。',
+      long: '時間（更新日）そのものはポリシーでもコマンドでもない。スケジューラはあくまで「呼び出し元」で、ドメインに現れるのは「更新日が到来した」という事実（イベント）。それに反応する「更新日が来たら課金する」がポリシー。',
+    },
+  },
+
+  // ---- Stage 9: 決済が失敗したら（越境の例外フロー）----
+  {
+    id: 'ch3-s2',
+    mode: 'timeline',
+    name: '決済が失敗したら',
+    icon: 'alert',
+    modeLabel: 'MODE 1 例外フロー',
+    scenario:
+      '更新日が到来して課金を試みたが、決済が失敗した。請求集約は支払いを延滞扱いにし、ポリシーが顧客サブスク集約へ猶予を効かせ、再試行の末に課金が成立した。単純な「更新→課金」の裏に、越境の例外フローが潜む。',
+    instruction: '越境の例外フローも時系列に。イベントでないカードは弾こう',
+    events: [
+      { id: 's2-renewal-due', kind: 'event', labelJa: '更新日が到来した' },
+      { id: 's2-charge-failed', kind: 'event', labelJa: '課金が失敗した' },
+      {
+        id: 's2-overdue',
+        kind: 'event',
+        labelJa: '支払いが延滞扱いになった',
+      },
+      {
+        id: 's2-grace-granted',
+        kind: 'event',
+        labelJa: '猶予期間が付与された',
+      },
+      { id: 's2-charged', kind: 'event', labelJa: '課金が成立した' },
+    ],
+    distractors: [
+      {
+        id: 's2-d-charge',
+        kind: 'command',
+        labelJa: '課金する',
+        isDistractor: true,
+        reason:
+          '「課金する」は置けません — それはコマンド（水色）。起きた事実なら「課金が成立した／失敗した」のはずです。',
+      },
+      {
+        id: 's2-d-gateway',
+        kind: 'externalSystem',
+        labelJa: '決済代行サービス',
+        isDistractor: true,
+        reason:
+          '「決済代行サービス」は置けません — それは外部システム（ピンク）。時間軸に並ぶ事実ではなく、結果を知らせてくる"外側の住人"です。',
+      },
+    ],
+    orderConstraints: [
+      ['s2-renewal-due', 's2-charge-failed'],
+      ['s2-charge-failed', 's2-overdue'],
+      ['s2-overdue', 's2-grace-granted'],
+      ['s2-grace-granted', 's2-charged'],
+    ],
+    vocab: { id: 'v-cross-consistency-2', ...refVocab('crossAggregateConsistency', 'aggregate') },
+    reality: {
+      short:
+        '越境の整合性は「失敗したら？」でこそ難しい。延滞・猶予・再試行が、2つの集約をイベントで往復しながら進む。',
+      long: '請求集約の「課金が失敗した」というイベントに、顧客サブスク集約側のポリシー（猶予を付与する）が反応する。整合性をユースケースに直書きせず、イベント＋ポリシーで繋ぐから、どの経路から課金が走っても同じ例外処理が効く。',
+    },
+  },
+
+  // ---- Stage 10: 越境の配線（Event→Policy→Command を別集約へ）----
+  {
+    id: 'ch3-s3',
+    mode: 'trigger',
+    name: '越境の配線：更新日が課金を呼ぶ',
+    icon: 'plug',
+    modeLabel: 'MODE 2 トリガー接続',
+    scenario:
+      'いよいよ越境の本丸。コマンドは誰かが起こす——解約は顧客の意思、入金記録は外部の決済代行のWebhook。そして「更新日が到来した」という顧客サブスク集約の“事実”が、ポリシー（紫）を通じて別集約（請求）の「課金する」を自動で呼ぶ。これが集約をまたぐ Event→Policy→Command。',
+    instruction:
+      '各コマンドに、それを起こすトリガーを1枚つなごう（Actor=黄 / Policy=紫 / External=ピンク）。孤立コマンドをゼロにせよ',
+    vocab: { id: 'v-crossing', ...refVocab('crossingByDomainEvent', 'policy') },
+    commands: [
+      { id: 's3-c-charge', kind: 'command', labelJa: '課金する' },
+      { id: 's3-c-record-payment', kind: 'command', labelJa: '入金を記録する' },
+      {
+        id: 's3-c-cancel',
+        kind: 'command',
+        labelJa: 'サブスクリプションを解約する',
+      },
+    ],
+    triggers: [
+      {
+        id: 's3-t-policy-renewal',
+        kind: 'policy',
+        labelJa: '更新日が来たら課金する',
+        labelEn: 'When renewal due, charge',
+      },
+      {
+        id: 's3-t-gateway',
+        kind: 'externalSystem',
+        labelJa: '決済代行サービス',
+        labelEn: 'Payment Provider',
+      },
+      {
+        id: 's3-t-customer',
+        kind: 'actor',
+        labelJa: '顧客',
+        labelEn: 'Customer',
+      },
+      {
+        id: 's3-t-clock',
+        kind: 'externalSystem',
+        labelJa: 'スケジューラ',
+        labelEn: 'Scheduler',
+        reason:
+          'スケジューラは「呼び出し元」で、課金を直接起こす引き金ではありません。ドメインに現れるのは「更新日が到来した」という事実で、それに反応する“ポリシー”が課金を呼びます。',
+      },
+      {
+        id: 's3-t-admin',
+        kind: 'actor',
+        labelJa: '運用担当者',
+        labelEn: 'Operator',
+        reason:
+          '運用担当者が毎月手で課金するとスケールしません。「更新日が来たら課金する」という自動ルール（ポリシー）に任せるのが越境の整合性。',
+      },
+    ],
+    validLinks: {
+      's3-c-charge': ['s3-t-policy-renewal'],
+      's3-c-record-payment': ['s3-t-gateway'],
+      's3-c-cancel': ['s3-t-customer'],
+    },
+    chain: {
+      eventId: 's1-renewal-due',
+      policyId: 's3-t-policy-renewal',
+      commandId: 's3-c-charge',
+      description:
+        '「更新日が到来した」(Event・顧客サブスク集約) → 「更新日が来たら課金する」(Policy) → 「課金する」(Command・請求集約)。1つの集約の事実が、ポリシーを通じて別の集約のコマンドを呼ぶ。これが集約をまたぐ Event→Policy→Command の越境。',
+    },
+    reality: {
+      short:
+        '集約をまたぐ整合性は「イベント＋ポリシー」で繋ぐのが定石。時間トリガーも“事実”として扱えば記法は崩れない。',
+      long: '整合性をユースケース（呼び出し元）に直書きすると、別経路から呼んだとき崩れる。ドメインイベントを発行し、ポリシーが別集約のコマンドを起こす形にすると、整合性がドメイン層に閉じて「どこから呼んでも守られる」。次はぜひ実ワークショップで、自分の業務の越境を付箋で繋いでみてください。',
+    },
+  },
 ]
 
 // ============================================================
@@ -418,6 +595,12 @@ export const CHAPTERS: Chapter[] = [
     title: '第2章 — タスク管理ドメイン（集約と不変条件）',
     icon: 'checklist',
     stageIds: ['ch2-s1', 'ch2-s2', 'ch2-s3'],
+  },
+  {
+    id: 'ch3',
+    title: '第3章 — サブスク課金ドメイン（集約をまたぐ整合性）',
+    icon: 'clock',
+    stageIds: ['ch3-s1', 'ch3-s2', 'ch3-s3'],
   },
 ]
 

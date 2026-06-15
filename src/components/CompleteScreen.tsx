@@ -77,12 +77,12 @@ export function CompleteScreen() {
       <div className="next-chapter">
         <div className="nc-label">NEXT CHAPTER（予告）</div>
         <div className="nc-title">
-          <Icon name="clock" size={18} /> 第3章 — サブスク課金ドメイン
+          <Icon name="box" size={18} /> 第4章 — 在庫と注文（複数集約のトランザクション）
         </div>
         <div className="nc-def">
-          時間で発火するポリシー（Scheduled Policy）が主役。
-          「更新日が来たら課金する」をどう描く？ 集約をまたぐ
-          <strong>整合性</strong>と<strong>時間トリガー</strong>へ。
+          「注文が確定したら在庫を引き当て、失敗したら取り消す」。
+          複数の集約にまたがる処理が途中で失敗したら？
+          <strong>補償</strong>と<strong>結果整合性</strong>の世界へ。
         </div>
       </div>
 

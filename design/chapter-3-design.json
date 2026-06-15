@@ -1,0 +1,45 @@
+{
+  "chapterTitle": "第3章 — サブスク課金ドメイン（集約をまたぐ整合性を“ドメインイベント”で繋ぐ：Event→Policy→Command の越境）",
+  "domain": "サブスクリプション課金（顧客サブスクリプション集約 / 請求集約 の2集約）。第2章「タスク管理」と同じ松岡『DDD サンプルコード&FAQ』§5.1 の題材系譜（タスク集約＋活動履歴集約という“1集約の出来事が別集約の生成を必ず引き起こす”構造）を、独学者になじみのあるサブスク課金へ言い換えたもの。ユビキタス言語が第2章のタスク系から地続きで、新題材の学習コストが小さい。",
+  "concept": "「単一集約の不変条件（第2章）」から「複数集約の整合性は“ドメインイベント”で繋ぐ（現場最頻出パターン）」への橋渡し。具体的には DDD-FAQ §5.1.4 実装方法3＝ドメインイベントを使用する：ある集約の処理がドメインイベントを発行し、ポリシー（イベントリスナー相当の“◯◯したら△△する”ルール）がそれを拾って“別の集約”のコマンドを起こす。この越境の因果連鎖 Event→Policy→Command を、半順序の越境タイムライン（MODE1×2）で“順番として”体に入れ、最後にトリガー接続（MODE2×1）で“配線として”1本組ませる。重要な誤概念回避：時間（更新日の到来）そのものはポリシーではない。「更新日が到来した」を“外部の時計が起こしたドメインイベント（事実）”として扱い、それに反応する“◯◯したら課金する”がポリシー。time-as-policy を主役に据えない（記法の正確さ＝優先①）。",
+  "needsNewMode": false,
+  "newModeSpec": "不要。既存3モードのみで全ステージを表現でき、src/game/engine.ts と src/game/types.ts は一切改変しない。内訳：(1) 越境タイムライン2本＝既存 TimelineStage（mode:'timeline'）＋ checkTimeline＋orderConstraints をそのまま使用。越境であることは“どの集約で起きた事実か”を distractor とラベルで見せるだけで、採点は半順序のまま。(2) 越境トリガー接続1本＝既存 TriggerStage（mode:'trigger'）＋ checkTriggers＋validLinks＋既存 ChainSpec をそのまま使用。Event→Policy→Command の越境連鎖は chain フィールド1本で表現でき、複数 validLink もエンジンが既に許容済み。新しい CardKind も不要（更新日到来は externalSystem＝“外部の時計”で表現、または既存 event/policy/command/actor で全て賄える）。stages.test.ts の既存アサーション（timeline:events 全て event種別／distractors は event以外／orderConstraints 参照実在、trigger:validLinks 参照実在＋全 command に validLink＋chain の policy/command 参照実在、emitsEventJa は過去形）も全て満たす設計にしてある。",
+  "stages": [
+    {
+      "id": "ch3-s1",
+      "mode": "timeline",
+      "name": "申し込みから初回課金まで",
+      "scenario": "顧客がプランに申し込み、サブスクリプションが開始した。やがて最初の更新日が到来し、それを受けて初回の課金が成立した。これは『顧客サブスクリプション』集約での出来事と、それに連なる『請求』集約での出来事——2つの集約をまたぐ時系列だ。",
+      "cards": "events(全て event＝オレンジ⚡・過去形): s1-subscribed『サブスクリプションが開始された』, s1-renewal-due『更新日が到来した』, s1-charged『課金が成立した』, s1-receipt『領収書が発行された』。distractors=なし（導入なので越境の“順番”だけに集中させる）。",
+      "winCondition": "orderConstraints（半順序・全順序強制しない）= [['s1-subscribed','s1-renewal-due'],['s1-renewal-due','s1-charged'],['s1-charged','s1-receipt']]。置くべき event 集合 {subscribed, renewal-due, charged, receipt} が過不足なく、前後関係を全て満たせば正解。",
+      "vocab": "v-event-crossing（refVocab('event')。獲得語彙ラベルは既存『ドメインイベント』を流用しつつ reality で“集約をまたぐ事実の連なり”を解説）。",
+      "reality": "short:『更新日が到来した』は“外部の時計が起こした事実（ドメインイベント）”。時間そのものはルールでも意図でもなく、起きた事実として時間軸に載る。 / long:申込は顧客サブスク集約、課金・領収書は請求集約の出来事。1つの集約の事実が、別集約の事実を呼ぶ——これが“集約をまたぐ”の最初の体感。実装では cron が更新日到来を検知してユースケースを叩く（cron はドメインのルール＝ポリシーではない）。"
+    },
+    {
+      "id": "ch3-s2",
+      "mode": "timeline",
+      "name": "決済が失敗したら",
+      "scenario": "更新日が到来して課金を試みたが、決済が失敗した。請求集約は支払いを延滞扱いにし、ポリシーが顧客サブスク集約へ猶予を効かせ、再試行の末に課金が成立した。単純な“更新→課金”の裏に、越境の例外フローと外部システムが潜む。",
+      "cards": "events(全て event＝オレンジ⚡・過去形): s2-renewal-due『更新日が到来した』, s2-charge-failed『課金が失敗した』, s2-overdue『支払いが延滞扱いになった』, s2-grace-granted『猶予期間が付与された』, s2-charged『課金が成立した』。distractors(event以外・置けない): s2-d-charge『課金する』(command＝水色▶, reason:『課金する』はコマンド。起きた事実なら『課金が成立した』のはず／時制で見分ける), s2-d-gateway『決済代行サービス』(externalSystem＝ピンク☁, reason:『決済代行サービス』は外部システム。時間軸に並ぶ事実ではなく、イベントを起こす“外側の住人”)。",
+      "winCondition": "orderConstraints= [['s2-renewal-due','s2-charge-failed'],['s2-charge-failed','s2-overdue'],['s2-overdue','s2-grace-granted'],['s2-grace-granted','s2-charged']]。distractor を1枚でも置くと不正解（hasDistractor）。event 集合が過不足なく前後関係充足で正解。",
+      "vocab": "v-readModel は第1章で既習のため再付与しない。本ステージは v-cross-aggregate（新規 GLOSSARY エントリ『集約整合性』を refVocab('crossAggregateConsistency','aggregate') で獲得）。",
+      "reality": "short:例外フロー（決済失敗・延滞・猶予）こそ越境整合性の核心。失敗が請求集約とサブスク集約の両方に波及する。 / long:『延滞になった』(請求集約) が、ポリシーを通じて『猶予を付与する』(サブスク集約) を呼ぶ。2集約の整合性をイベントで保つ＝§5.1.4 実装方法3。外部システム（決済代行）はイベントを起こす住人で、時間軸の事実そのものではない。"
+    },
+    {
+      "id": "ch3-s3",
+      "mode": "trigger",
+      "name": "越境の配線：更新日が課金を呼ぶ",
+      "scenario": "いよいよ越境の本丸。コマンドは誰かが起こす——解約は顧客の意思、入金記録は外部の決済代行のWebhook。そして『更新日が到来した』という顧客サブスク集約の“事実”が、ポリシー（紫）を通じて“別の集約＝請求集約”のコマンド『課金する』を自動で呼ぶ。これが集約をまたぐ Event→Policy→Command だ。",
+      "cards": "commands(水色▶): s3-c-charge『課金する』(請求集約), s3-c-record-payment『入金を記録する』(請求集約), s3-c-cancel『サブスクリプションを解約する』(顧客サブスク集約)。triggers(トレイ・正解＋ダミー混在): s3-t-policy-renewal『更新日が到来したら課金する』(policy＝紫⚙, labelEn:'When renewal is due, charge'), s3-t-gateway『決済代行サービス』(externalSystem＝ピンク☁, labelEn:'Payment Provider'), s3-t-customer『顧客』(actor＝黄👤, labelEn:'Customer'), s3-t-clock-actor『運用担当者（手動で課金実行）』(actor＝黄👤, reason:『毎月手動で課金』はピーク時に破綻。『更新日が到来したら課金する』という自動ルール＝ポリシーに任せられる。time-as-actor の誤りに気づかせるダミー), s3-t-readmodel『請求一覧画面』(readModel＝緑📋, reason:リードモデルは“見るための情報”。コマンドの引き金にはならない)。",
+      "winCondition": "validLinks（複数正解許容・全 command に≥1）= {'s3-c-charge':['s3-t-policy-renewal'], 's3-c-record-payment':['s3-t-gateway'], 's3-c-cancel':['s3-t-customer']}。孤立コマンド（起動経路の宙吊り）ゼロが正解条件。chain（ChainSpec で越境連鎖を1本ハイライト）= {eventId:'s1-renewal-due'（または ch3-s1 の更新日到来イベント id を参照）, policyId:'s3-t-policy-renewal', commandId:'s3-c-charge', description:'「更新日が到来した」(Event/顧客サブスク集約) → 「更新日が到来したら課金する」(Policy) → 「課金する」(Command/請求集約)。事実がルールを通じて“別の集約”の行動を呼ぶ。これが集約をまたぐ Event→Policy→Command。'}。",
+      "vocab": "v-policy は第1章で既習。本ステージは v-domain-event-method（新規 GLOSSARY『ドメインイベントによる越境』を refVocab('crossingByDomainEvent','policy') で獲得）。",
+      "reality": "short:『更新日が到来したら課金する』はポリシー＝ドメインのルール。だが“更新日が来る”という時間そのものはポリシーではなく、外部の時計が起こす事実(イベント)。 / long:§5.1.4 実装方法3＝ドメインイベントを使用する：サブスク集約が『更新日到来』イベントを発行→ポリシー(イベントリスナー相当)が拾って請求集約に『課金する』を起こす。これで“どこから呼んでも整合性が崩れない”を保証する(ユースケースに整合性を散らさない)。cron は更新日到来を検知してユースケースを叩く“呼び出し元”で、ドメインのポリシーではない——この区別を実ワークショップに持ち込めると強い。"
+    }
+  ],
+  "newVocab": [
+    "集約整合性 / Cross-Aggregate Consistency / 複数の集約にまたがって守りたい整合性。1つの集約の出来事が、別の集約の状態を必ず引き起こす関係（例：更新日が来たら必ず課金が走る）。GLOSSARY id=crossAggregateConsistency, icon='box'（kindを持たない補助用語。表示色は refVocab の kindOverride='aggregate' で淡黄）。note:単一集約の不変条件（第2章）が“1つの境界の中のルール”なのに対し、こちらは“境界をまたぐ整合性”。DDD-FAQ §5.1。",
+    "ドメインイベントによる越境 / Crossing by Domain Event / 集約をまたぐ整合性を“ドメインイベント”で確保する実装方法。ある集約がイベントを発行し、ポリシー（イベントリスナー相当の『◯◯したら△△する』）がそれを拾って別の集約のコマンドを起こす。GLOSSARY id=crossingByDomainEvent, kindOverride='policy'（紫で表示）。note:DDD-FAQ §5.1.4 実装方法3。ユースケースに整合性ロジックを散らす方法1より、整合性がドメイン層に閉じ“どこから呼んでも崩れない”利点がある。",
+    "外部の時計 / External Clock / 『更新日が到来した』のような“時間の経過によって起きる事実”を発生させる、システムの管理外の起点。EventStorming では時間そのものはポリシーでもコマンドでもなく、外部システム（ピンク☁）が起こすドメインイベントとして時間軸に載せる。GLOSSARY id=externalClock は既存 externalSystem の説明に統合してもよい（新規エントリ化は任意）。note:cron/スケジューラ実装は“ユースケースの呼び出し元”であってドメインのポリシーではない、という区別を完走画面で実WSへ送る。※パネルが根拠とした『DDD-FAQ §8.5 が cron=プレゼンテーション層と明言』は本書では未確認（§8.5 は『それぞれの層の責務』でDTO配置の節）。出荷物に §8.5 の cron 出典は記載しない。time-as-policy 回避の論拠は §5.1（越境はイベントで繋ぐ）＋EventStorming記法の一般則（ポリシーはイベントに反応するルール）に置く。"
+  ],
+  "engineImpact": "理想どおりゼロ。src/game/engine.ts（checkTimeline / checkTriggers / isValidLink / scoreStars / commandPasses / applyCommand / judgeGateDecision）も src/game/types.ts（CardKind / TimelineStage / TriggerStage / ChainSpec / InvariantGateStage 等）も一切変更しない。リファクタ直後にデータ追加のみで実装可能。追加・変更ファイルは次の4つだけ：(1) src/data/stages.ts に TimelineStage×2＋TriggerStage×1 を STAGES へ追加し、CHAPTERS に {id:'ch3', title:第3章タイトル, icon:'clock'（既存Iconに存在）, stageIds:['ch3-s1','ch3-s2','ch3-s3']} を追加。(2) CONTEXT.md に新ユビキタス用語3件（集約整合性／ドメインイベントによる越境／外部の時計の扱い）を追記＝正本。(3) src/game/glossary.ts の GLOSSARY に crossAggregateConsistency（icon:'box'）と crossingByDomainEvent（kind未指定→refVocabでkindOverride='policy'）を追加（CONTEXT.mdの写し）。(4) src/components/CompleteScreen.tsx の予告ブロック（L80-86）を改稿：タイトルは『第3章 — サブスク課金ドメイン』維持、本文を『集約をまたぐ整合性を“ドメインイベント”で繋ぐ（Event→Policy→Command の越境）。更新日が来たという事実が、ポリシーを通じて別の集約のコマンドを呼ぶ。』へ差し替え（“時間で発火するポリシー(Scheduled Policy)が主役”という time-as-policy 文言を撤去＝優先①ドメインの正確さ）。なお既存 stages.test.ts は無改変で全PASSするよう設計済（timeline:events全てevent種別/distractorsはevent以外/orderConstraints参照実在、trigger:validLinks参照実在＋全commandにvalidLink≥1＋chainのpolicy/command参照実在、invariant非該当）。運用：CLAUDE.md/git-workflow.md に従い予告改稿とADR要否（『時間トリガーをPolicyとして教えない』判断＝将来の章設計に効く後戻りコスト）は issue→PR で残し、ADR起票を推奨。chain.eventId は ch3-s1 のイベント id を跨いで参照するため、参照先実在を stages.test.ts の chain 検証が triggers/commands しか見ていない点に注意（eventId は同stage内に無くてよい仕様だが、ハイライト表示の都合上 ch3-s3 内に同義の event カードを置くか、description だけで連鎖を語る運用にするかは実装時に確定）。"
+}
