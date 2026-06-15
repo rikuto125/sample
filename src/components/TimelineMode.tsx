@@ -11,7 +11,7 @@ import {
 import {
   SortableContext,
   arrayMove,
-  horizontalListSortingStrategy,
+  verticalListSortingStrategy,
   sortableKeyboardCoordinates,
   useSortable,
 } from '@dnd-kit/sortable'
@@ -45,19 +45,19 @@ function SortableSticky({
   return (
     <div
       ref={setNodeRef}
-      className={justLanded ? 'snap-land' : undefined}
+      className={`tl-item ${justLanded ? 'snap-land' : ''}`}
       style={{
-        transform: isDragging ? `${base} scale(1.08) rotate(-4deg)` : base,
+        transform: isDragging ? `${base} scale(1.04)` : base,
         transition,
         opacity: isDragging ? 0.5 : 1,
       }}
       {...attributes}
       {...listeners}
     >
-      <div className="slot-index" aria-hidden>
+      <span className="tl-num" aria-hidden>
         {slot + 1}
-      </div>
-      <Sticky card={card} dragging={isDragging} inHand />
+      </span>
+      <Sticky card={card} dragging={isDragging} inHand className="tl-sticky" />
     </div>
   )
 }
@@ -132,25 +132,19 @@ export function TimelineMode({ stage, onCorrect, onMistake }: Props) {
   return (
     <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
       <div className="timeline-board">
-        <div className="timeline-slots" aria-label="タイムライン（左が過去、右が未来）">
-          <div className="time-axis" aria-hidden>
-            <span className="time-axis-label">
-              <Icon name="prev" size={14} /> 過去
-            </span>
-            <span className="time-axis-rail" />
-            <span className="time-axis-label">
-              未来 <Icon name="next" size={14} />
-            </span>
+        <div className="timeline-slots" aria-label="タイムライン（上が過去、下が未来）">
+          <div className="time-axis-end top" aria-hidden>
+            <Icon name="up" size={14} /> 過去（先に起きた事実）
           </div>
           <SortableContext
             items={placed.map((c) => c.id)}
-            strategy={horizontalListSortingStrategy}
+            strategy={verticalListSortingStrategy}
           >
-            <div className={`slots-row ${placed.length > 0 ? 'filled' : ''}`}>
+            <div className={`timeline-col ${placed.length > 0 ? 'filled' : ''}`}>
               {placed.length === 0 && (
                 <div className="slot-empty">
                   <Icon name="target" size={22} />
-                  ここに時系列で並べよう
+                  上から順に、起きた順で並べよう
                 </div>
               )}
               {placed.map((card, i) => (
@@ -159,7 +153,7 @@ export function TimelineMode({ stage, onCorrect, onMistake }: Props) {
                   className="slot-wrap"
                   onClick={() => removeToHand(card)}
                   aria-label={`${card.labelJa} を手札に戻す`}
-                  style={{ background: 'none', border: 'none', padding: 0 }}
+                  style={{ background: 'none', border: 'none', padding: 0, display: 'block', width: '100%' }}
                 >
                   <SortableSticky
                     card={card}
@@ -170,6 +164,9 @@ export function TimelineMode({ stage, onCorrect, onMistake }: Props) {
               ))}
             </div>
           </SortableContext>
+          <div className="time-axis-end bottom" aria-hidden>
+            <Icon name="down" size={14} /> 未来（あとに起きた事実）
+          </div>
         </div>
 
         <div className="hand">

@@ -70,12 +70,24 @@ button { font-family: inherit; cursor: pointer; }
   align-items: center;
   gap: var(--space-sm);
   padding: var(--space-sm) var(--space-md);
+  padding-top: calc(var(--space-sm) + env(safe-area-inset-top));
   background: var(--grad-brand);
   color: #fff;
 }
-.appbar .title { font-weight: 800; letter-spacing: var(--ls-wide); flex: 1; }
+.appbar .title { font-weight: 800; letter-spacing: var(--ls-wide); flex: 1; min-width: 0; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .appbar .title .app { color: #fff; }
-.appbar .back, .appbar .stars-pill {
+/* 戻るはアイコンのみの丸ボタン（テキスト「ホーム」は幅を食い、狭幅でタイトルを欠けさせるため） */
+.appbar .back {
+  flex: none;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 40px; height: 40px;
+  background: rgba(255,255,255,.16);
+  border: 1px solid rgba(255,255,255,.3);
+  color: #fff;
+  border-radius: var(--radius-pill);
+}
+.appbar .stars-pill {
+  flex: none; white-space: nowrap;
   display: inline-flex; align-items: center; gap: 5px;
   background: rgba(255,255,255,.16);
   border: 1px solid rgba(255,255,255,.3);
@@ -86,6 +98,7 @@ button { font-family: inherit; cursor: pointer; }
   font-weight: 700;
 }
 .appbar .stars-pill .lucide { color: var(--reward); }
+.snd-toggle { flex: none; }
 /* 音 ON/OFF トグル（状態は色でなく Volume2 / VolumeX のアイコン形状で示す）。タップ標的 ≥44px */
 .snd-toggle {
   display: inline-flex; align-items: center; justify-content: center;

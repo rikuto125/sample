@@ -97,38 +97,53 @@
   border-radius: var(--radius-sm);
   background: var(--accent-tint); color: var(--accent);
 }
-.slot-index { font-size: var(--fs-caption); color: var(--ink-muted); text-align: center; font-weight: 800; }
-
+/* ===== タイムライン（縦・上が過去/下が未来）=====
+   480px 上限では横並びだと必ず2列に折返し「左列=過去/右列=未来」に誤読されるため、
+   縦1列で上→下に時間が流れる形にして曖昧さをなくす（実機検証の結果）。 */
 .timeline-slots { margin-bottom: var(--space-md); }
-/* 時間軸: 過去→未来 を1本のレールで明示（floatの“素”な見た目をやめる） */
-.time-axis { display: flex; align-items: center; gap: var(--space-xs); margin-bottom: var(--space-2xs); }
-.time-axis-label { display: inline-flex; align-items: center; gap: 3px; font-size: var(--fs-caption); color: var(--ink-muted); font-weight: 800; flex: none; }
-.time-axis-rail {
-  flex: 1; height: 2px; border-radius: var(--radius-pill);
-  background: linear-gradient(90deg, rgba(22,122,122,.15), rgba(22,122,122,.55));
+.time-axis-end {
+  display: flex; align-items: center; justify-content: center; gap: 5px;
+  font-size: var(--fs-caption); color: var(--ink-muted); font-weight: 800;
 }
-.slots-row {
-  display: flex; flex-wrap: wrap; gap: var(--space-xs);
+.time-axis-end.top { margin-bottom: var(--space-2xs); }
+.time-axis-end.bottom { margin-top: var(--space-2xs); }
+.time-axis-end .lucide { color: var(--accent); }
+
+.timeline-col {
+  display: flex; flex-direction: column; gap: var(--space-xs);
   border: var(--border-slot);
   border-radius: var(--radius-md);
   padding: var(--space-sm);
-  min-height: 90px;
-  margin: var(--space-2xs) 0;
+  min-height: 96px;
   /* 空＝凹んだ“貼れる場所”。点線＋淡いアクセント地＋内側影で目的を伝える */
   background: var(--accent-tint);
   box-shadow: inset 0 2px 6px rgba(22, 122, 122, 0.10);
   transition: background var(--motion-base), border-color var(--motion-base);
 }
 /* 配置済み＝確定。実線＋白板へ（点線=未確定 / 実線=確定 の規則を MODE2 と統一） */
-.slots-row.filled {
+.timeline-col.filled {
   background: var(--board);
   border-style: solid; border-color: var(--line);
   box-shadow: none;
 }
+.slot-wrap { display: block; width: 100%; }
+
+/* 各行: [番号] [付箋] の横並び。番号が左にあることで上→下の順序が一目で分かる */
+.tl-item { display: flex; align-items: stretch; gap: var(--space-sm); width: 100%; }
+.tl-num {
+  flex: none; align-self: center;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 26px; height: 26px; border-radius: var(--radius-pill);
+  background: var(--accent); color: #fff;
+  font-size: var(--fs-caption); font-weight: 800;
+}
+.tl-sticky { flex: 1; text-align: center; }
+.tl-sticky .meta { justify-content: center; }
+.timeline-col.filled .tl-num { box-shadow: 0 0 0 3px var(--board); }
+
 .slot-empty, .slot-hint { color: var(--ink-muted); font-size: var(--fs-body-sm); margin: auto; font-weight: 700; }
-.slot-empty { display: inline-flex; flex-direction: column; align-items: center; gap: 6px; color: var(--accent); opacity: .8; }
+.slot-empty { display: inline-flex; flex-direction: column; align-items: center; gap: 6px; color: var(--accent); opacity: .85; }
 .slot-hint { display: inline-flex; align-items: center; gap: 4px; }
-.slot-wrap { display: block; }
 
 .hand { margin-bottom: var(--space-md); }
 .hand-label { font-size: var(--fs-body-sm); color: var(--ink); font-weight: 800; margin-bottom: var(--space-xs); }
@@ -178,6 +193,7 @@
 }
 .chapter-title.done .chapter-icon { background: #e3f5ea; color: var(--state-ok); }
 .chapter-badge {
+  flex: none; white-space: nowrap;
   display: inline-flex; align-items: center; gap: 4px;
   margin-left: auto; font-size: var(--fs-caption); font-weight: 800;
   background: var(--state-ok); color: #fff;
@@ -306,13 +322,13 @@
 }
 .reality strong { display: inline-flex; align-items: center; gap: 6px; margin-bottom: var(--space-2xs); }
 /* 金は「獲得・達成」専用。情報アイコンはアクセント側に寄せて配色ロジックを明確化 */
-.reality strong .lucide { color: var(--accent-soft); }
+.reality strong .lucide { color: var(--accent-on-dark); }
 .reality p { opacity: .92; }
 .reality-long { margin-top: var(--space-xs); opacity: .85; }
-.more-btn { display: inline-flex; align-items: center; gap: 4px; background: none; border: none; color: var(--accent-soft); font-weight: 800; padding: var(--space-2xs) 0; }
+.more-btn { display: inline-flex; align-items: center; gap: 4px; background: none; border: none; color: var(--accent-on-dark); font-weight: 800; padding: var(--space-2xs) 0; }
 .chain-box { margin-top: var(--space-sm); padding-top: var(--space-sm); border-top: 1px solid rgba(255,255,255,.2); }
 .chain-box strong { display: inline-flex; align-items: center; gap: 6px; color: #fff; }
-.chain-box strong .lucide { color: var(--accent-soft); }
+.chain-box strong .lucide { color: var(--accent-on-dark); }
 
 /* 章クリア帯（result の screen-dark 上）。章は記法でないので記法色を使わず中立に */
 /* 星バーストを唯一の主役にするため、章クリア帯は控えめに（副次の達成） */
@@ -350,9 +366,9 @@
 .stat-lbl { font-size: var(--fs-caption); opacity: .8; font-weight: 700; }
 /* 予告は「これから来るもの」＝点線＋淡い地で reality（実線・余談）と役割差を出す */
 .next-chapter { background: rgba(255,255,255,.05); border: 1px dashed rgba(255,255,255,.28); border-radius: var(--radius-md); padding: var(--space-md); text-align: left; margin: var(--space-lg) 0; }
-.nc-label { font-size: var(--fs-caption); font-weight: 900; letter-spacing: var(--ls-wide); color: var(--accent-soft); }
+.nc-label { font-size: var(--fs-caption); font-weight: 900; letter-spacing: var(--ls-wide); color: var(--accent-on-dark); }
 .nc-title { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-heading); font-weight: 800; margin: var(--space-2xs) 0; }
-.nc-title .lucide { color: var(--accent-soft); }
+.nc-title .lucide { color: var(--accent-on-dark); }
 .nc-def { font-size: var(--fs-body-sm); opacity: .9; line-height: var(--lh-body); }
 .finish-note { font-size: var(--fs-body-sm); opacity: .8; margin: var(--space-md) 0; }
 
