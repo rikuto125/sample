@@ -7,6 +7,8 @@ import { PlayScreen } from './components/PlayScreen'
 import { ResultScreen } from './components/ResultScreen'
 import { CompleteScreen } from './components/CompleteScreen'
 import { Onboarding } from './components/Onboarding'
+import { Icon } from './components/Icon'
+import { Star } from 'lucide-react'
 
 function SoundToggle() {
   // 設定はゲーム状態でないので store(reducer) を汚さずローカルに持つ。
@@ -24,7 +26,7 @@ function SoundToggle() {
       aria-pressed={enabled}
       aria-label={enabled ? '効果音オン（タップでオフ）' : '効果音オフ（タップでオン）'}
     >
-      {enabled ? '🔊' : '🔇'}
+      <Icon name={enabled ? 'soundOn' : 'soundOff'} size={18} />
     </button>
   )
 }
@@ -36,11 +38,11 @@ function AppBar() {
     <header className="appbar">
       {!onHome ? (
         <button className="back" onClick={() => dispatch({ type: 'goHome' })} aria-label="ホームに戻る">
-          ‹ ホーム
+          <Icon name="back" size={16} /> ホーム
         </button>
       ) : (
         <span className="back" style={{ visibility: 'hidden' }}>
-          ‹
+          <Icon name="back" size={16} />
         </span>
       )}
       <span className="title">
@@ -48,7 +50,8 @@ function AppBar() {
       </span>
       <SoundToggle />
       <span className="stars-pill" aria-label={`累計 ${totalStars(state.progress)} スター`}>
-        ★ {totalStars(state.progress)}
+        <Star size={14} fill="currentColor" strokeWidth={2} aria-hidden />{' '}
+        {totalStars(state.progress)}
       </span>
     </header>
   )

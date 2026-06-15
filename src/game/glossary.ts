@@ -86,7 +86,7 @@ export const GLOSSARY: Record<string, GlossaryEntry> = {
     id: 'aggregateInvariant',
     ja: '集約不変条件',
     en: 'Aggregate Invariant',
-    icon: '🛡️',
+    icon: 'shield',
     def: '集約が常に守るドメインのルール（例「延期は最大3回」）。破るコマンドは集約に拒否される。',
     note: 'Phase 8 の「孤立コマンドをゼロにする」モデリング規約とは別物（あちらはモデリング規約、こちらは集約のドメインルール）。',
     intuition: {
@@ -98,7 +98,7 @@ export const GLOSSARY: Record<string, GlossaryEntry> = {
     id: 'stateTransition',
     ja: '状態遷移',
     en: 'State Transition',
-    icon: '🔁',
+    icon: 'transition',
     def: '集約の状態が変わること（例 UNDONE→DONE）。遷移後は許されるコマンドが変わる。',
   },
 }

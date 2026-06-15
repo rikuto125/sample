@@ -10,6 +10,7 @@ import { TimelineMode } from './TimelineMode'
 import { TriggerMode } from './TriggerMode'
 import { InvariantGateMode } from './InvariantGateMode'
 import { Legend } from './Legend'
+import { Icon, type IconName } from './Icon'
 import { RichText } from './RichText'
 import { DefinitionSheet, type DefVia } from './DefinitionSheet'
 import { Toast, type ToastState } from './Toast'
@@ -34,6 +35,13 @@ function inlineTerms(stage: Stage): GlossaryEntry[] {
     kinds.add('aggregate')
   }
   return [...kinds].map((k) => glossaryForKind(k))
+}
+
+/** モードごとの「今やること」アイコン（旧 instruction 絵文字の置換）。 */
+const MODE_ICON: Record<Stage['mode'], IconName> = {
+  timeline: 'timer',
+  trigger: 'plug',
+  invariant: 'gate',
 }
 
 export function PlayScreen() {
@@ -71,26 +79,36 @@ export function PlayScreen() {
     <div className="screen play">
       <div className="modelabel">{stage.modeLabel}</div>
       <h2 className="play-title">
-        {stage.icon} {stage.name}
+        <Icon name={stage.icon} size={24} className="play-title-icon" /> {stage.name}
       </h2>
 
       {/* 今やること（指示）はプレイ画面に常駐。説明＋凡例は畳んで密度を下げる（#2 情報設計） */}
       <p className="instruction">
-        <RichText
-          text={stage.instruction}
-          terms={inlineTerms(stage)}
-          onOpenDef={(entry) => setDef({ entry, via: 'inline' })}
-        />
-      </p>
-
-      <details className="stage-brief">
-        <summary>この章の説明と記法</summary>
-        <div className="scenario">
+        <Icon name={MODE_ICON[stage.mode]} size={18} className="instruction-icon" />
+        <span>
           <RichText
-            text={stage.scenario}
+            text={stage.instruction}
             terms={inlineTerms(stage)}
             onOpenDef={(entry) => setDef({ entry, via: 'inline' })}
           />
+        </span>
+      </p>
+
+      <details className="stage-brief">
+        <summary>
+          <Icon name="scenario" size={16} className="brief-lead" />
+          この章の説明と記法
+          <Icon name="more" size={16} className="brief-chev" />
+        </summary>
+        <div className="scenario">
+          <Icon name="scenario" size={18} className="scenario-icon" />
+          <span>
+            <RichText
+              text={stage.scenario}
+              terms={inlineTerms(stage)}
+              onOpenDef={(entry) => setDef({ entry, via: 'inline' })}
+            />
+          </span>
         </div>
         <Legend
           kinds={

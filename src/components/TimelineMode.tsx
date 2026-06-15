@@ -19,6 +19,7 @@ import { CSS } from '@dnd-kit/utilities'
 import type { Card, TimelineStage } from '../game/types'
 import { checkTimeline } from '../game/engine'
 import { Sticky } from './Sticky'
+import { Icon } from './Icon'
 import { shuffle } from '../game/shuffle'
 import { soundEngine as sound } from '../game/sound'
 
@@ -132,14 +133,25 @@ export function TimelineMode({ stage, onCorrect, onMistake }: Props) {
     <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
       <div className="timeline-board">
         <div className="timeline-slots" aria-label="タイムライン（左が過去、右が未来）">
-          <span className="axis-label past">← 過去</span>
+          <div className="time-axis" aria-hidden>
+            <span className="time-axis-label">
+              <Icon name="prev" size={14} /> 過去
+            </span>
+            <span className="time-axis-rail" />
+            <span className="time-axis-label">
+              未来 <Icon name="next" size={14} />
+            </span>
+          </div>
           <SortableContext
             items={placed.map((c) => c.id)}
             strategy={horizontalListSortingStrategy}
           >
-            <div className="slots-row">
+            <div className={`slots-row ${placed.length > 0 ? 'filled' : ''}`}>
               {placed.length === 0 && (
-                <div className="slot-empty">ここに時系列で並べよう</div>
+                <div className="slot-empty">
+                  <Icon name="target" size={22} />
+                  ここに時系列で並べよう
+                </div>
               )}
               {placed.map((card, i) => (
                 <button
@@ -158,7 +170,6 @@ export function TimelineMode({ stage, onCorrect, onMistake }: Props) {
               ))}
             </div>
           </SortableContext>
-          <span className="axis-label future">未来 →</span>
         </div>
 
         <div className="hand">
@@ -184,13 +195,13 @@ export function TimelineMode({ stage, onCorrect, onMistake }: Props) {
 
         <div className="play-actions">
           <button
-            className="btn-ghost"
+            className="btn-ghost btn-hint"
             onClick={() => {
               setShowHint(true)
               setUsedHint(true)
             }}
           >
-            💡 ヒント（星評価が下がります）
+            <Icon name="hint" size={18} /> ヒント（星評価が下がります）
           </button>
           {showHint && (
             <p className="hint-text">
@@ -203,7 +214,7 @@ export function TimelineMode({ stage, onCorrect, onMistake }: Props) {
             disabled={placed.length === 0}
             onClick={check}
           >
-            この並びで確定 ▶
+            この並びで確定 <Icon name="next" size={18} />
           </button>
         </div>
       </div>

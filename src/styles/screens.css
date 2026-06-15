@@ -1,18 +1,41 @@
 /* ===== Hero / Home ===== */
-.hero { text-align: center; margin-bottom: var(--space-lg); }
+.hero {
+  position: relative; overflow: hidden;
+  text-align: center;
+  background: var(--grad-joy);
+  color: #fff;
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg) var(--space-md) var(--space-md);
+  margin-bottom: var(--space-lg);
+  box-shadow: 0 16px 38px rgba(67, 38, 184, 0.3);
+}
+/* やわらかい光（フラットすぎる単色グラデの“AI感”を抜く） */
+.hero::after {
+  content: ""; position: absolute; top: -40%; right: -20%;
+  width: 220px; height: 220px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,255,255,.35), rgba(255,255,255,0) 70%);
+  pointer-events: none;
+}
+.hero > * { position: relative; }
+/* グラデのピンク寄りの上で白小文字が AA を割らないよう、ヒーロー文字に薄い影で可読性を担保 */
+.hero .kicker, .hero-tag, .hero .pct { text-shadow: 0 1px 2px rgba(40, 24, 90, 0.45); }
 .hero .kicker {
   display: inline-block;
   font-size: var(--fs-caption);
   letter-spacing: var(--ls-wide);
-  color: var(--accent);
+  color: rgba(255, 255, 255, 0.92);
   font-weight: 800;
   margin-bottom: var(--space-xs);
 }
-.hero h1 { font-size: var(--fs-display); font-weight: 900; }
-.hero h1 .app { color: var(--accent); }
-.hero .domain { font-size: var(--fs-body); color: var(--ink-muted); margin: var(--space-xs) 0 var(--space-md); font-weight: 700; }
+.hero h1 { font-size: var(--fs-display); font-weight: 900; margin-bottom: var(--space-2xs); }
+.hero h1 .app { color: #fff; }
+.hero-tag { font-size: var(--fs-body-sm); color: rgba(255,255,255,.92); font-weight: 600; margin-bottom: var(--space-md); max-width: 300px; margin-left: auto; margin-right: auto; }
+.hero .domain { font-size: var(--fs-body); color: rgba(255,255,255,.9); margin: var(--space-xs) 0 var(--space-md); font-weight: 700; }
+.hero .progressbar { background: rgba(255, 255, 255, 0.28); }
+.hero .progressbar i { background: #fff; }
+.hero .pct { color: #fff; font-weight: 800; }
 .progressbar { height: 10px; background: var(--accent-tint); border-radius: var(--radius-pill); overflow: hidden; }
-.progressbar i { display: block; height: 100%; background: linear-gradient(90deg, var(--accent), var(--es-event)); transition: width var(--motion-base) var(--ease-out); }
+.progressbar i { display: block; height: 100%; background: var(--grad-joy); transition: width var(--motion-base) var(--ease-out); }
 .pct { font-size: var(--fs-body-sm); color: var(--ink-muted); margin-top: var(--space-2xs); font-weight: 700; }
 
 .stage-map { display: flex; flex-direction: column; gap: var(--space-sm); margin-bottom: var(--space-lg); }
@@ -27,49 +50,88 @@
   transition: transform var(--motion-fast) var(--ease-out);
 }
 .stage-node:not(:disabled):active { transform: scale(0.98); }
+.stage-node:not(:disabled):hover { transform: translateY(-1px); box-shadow: 0 12px 30px rgba(67,38,184,.18); }
 .stage-node.cleared { border-left: 6px solid var(--state-ok); }
-.stage-node.locked { opacity: 0.5; }
-.node-icon { font-size: 1.6rem; }
+.stage-node.locked { opacity: 0.55; }
+.node-icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 40px; height: 40px; flex: none;
+  border-radius: var(--radius-md);
+  background: var(--accent-tint); color: var(--accent);
+}
+.stage-node.cleared .node-icon { background: #e3f5ea; color: var(--state-ok-ink); }
+.stage-node.locked .node-icon { background: var(--surface-sunken); color: var(--ink-muted); }
 .node-body { flex: 1; display: flex; flex-direction: column; }
 .node-name { font-weight: 800; font-size: var(--fs-body); }
 .node-mode { font-size: var(--fs-caption); color: var(--ink-muted); font-weight: 700; }
-.node-stars { font-size: var(--fs-body); color: var(--es-event); letter-spacing: 1px; }
+.node-stars { display: inline-flex; align-items: center; }
+.node-lock { color: var(--ink-muted); }
+.node-go { color: var(--accent); }
 
 /* ===== 用語図鑑 ===== */
 .codex { margin-top: var(--space-xl); }
-.codex-title { font-size: var(--fs-heading); margin-bottom: var(--space-sm); color: var(--accent-dark); }
+/* 図鑑見出しは「章タイトル」と種類が違うのでオーバーライン（小・字間広め）で階層を分ける */
+.codex-title {
+  display: flex; align-items: center; gap: 6px;
+  font-size: var(--fs-caption); letter-spacing: var(--ls-wide);
+  text-transform: uppercase;
+  margin-bottom: var(--space-sm); color: var(--ink-muted);
+}
+.codex-title .lucide { color: var(--accent); }
 .codex-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-xs); }
 .codex-card {
   border-radius: var(--radius-sm); padding: var(--space-sm);
   min-height: 64px; display: flex; flex-direction: column; justify-content: center;
   box-shadow: var(--shadow-sticky);
 }
-.codex-card.empty { background: #efeaf7; color: var(--ink-faint); align-items: center; text-align: center; box-shadow: none; }
-.codex-icon { font-size: 1.1rem; }
+.codex-card.empty { background: var(--surface-sunken); color: var(--ink-muted); align-items: center; justify-content: center; text-align: center; box-shadow: none; }
+.codex-icon { display: inline-flex; }
 .codex-ja { font-weight: 800; font-size: var(--fs-body-sm); }
 .codex-en { font-size: var(--fs-caption); opacity: .75; font-weight: 700; }
 
 /* ===== Play ===== */
-.play-title { font-size: var(--fs-title); margin: var(--space-2xs) 0 var(--space-sm); }
-.slot-index { font-size: var(--fs-caption); color: var(--ink-faint); text-align: center; font-weight: 800; }
+.play-title { display: flex; align-items: center; gap: var(--space-sm); font-size: var(--fs-title); margin: var(--space-2xs) 0 var(--space-sm); }
+.play-title-icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 34px; height: 34px; flex: none;
+  border-radius: var(--radius-sm);
+  background: var(--accent-tint); color: var(--accent);
+}
+.slot-index { font-size: var(--fs-caption); color: var(--ink-muted); text-align: center; font-weight: 800; }
 
 .timeline-slots { margin-bottom: var(--space-md); }
-.axis-label { font-size: var(--fs-caption); color: var(--ink-muted); font-weight: 800; }
-.axis-label.future { float: right; }
+/* 時間軸: 過去→未来 を1本のレールで明示（floatの“素”な見た目をやめる） */
+.time-axis { display: flex; align-items: center; gap: var(--space-xs); margin-bottom: var(--space-2xs); }
+.time-axis-label { display: inline-flex; align-items: center; gap: 3px; font-size: var(--fs-caption); color: var(--ink-muted); font-weight: 800; flex: none; }
+.time-axis-rail {
+  flex: 1; height: 2px; border-radius: var(--radius-pill);
+  background: linear-gradient(90deg, rgba(109,74,255,.12), rgba(109,74,255,.5));
+}
 .slots-row {
   display: flex; flex-wrap: wrap; gap: var(--space-xs);
-  background: var(--board);
   border: var(--border-slot);
   border-radius: var(--radius-md);
   padding: var(--space-sm);
   min-height: 90px;
   margin: var(--space-2xs) 0;
+  /* 空＝凹んだ“貼れる場所”。点線＋淡いアクセント地＋内側影で目的を伝える */
+  background: var(--accent-tint);
+  box-shadow: inset 0 2px 6px rgba(67, 38, 184, 0.08);
+  transition: background var(--motion-base), border-color var(--motion-base);
 }
-.slot-empty, .slot-hint { color: var(--ink-faint); font-size: var(--fs-body-sm); margin: auto; font-weight: 700; }
+/* 配置済み＝確定。実線＋白板へ（点線=未確定 / 実線=確定 の規則を MODE2 と統一） */
+.slots-row.filled {
+  background: var(--board);
+  border-style: solid; border-color: var(--line);
+  box-shadow: none;
+}
+.slot-empty, .slot-hint { color: var(--ink-muted); font-size: var(--fs-body-sm); margin: auto; font-weight: 700; }
+.slot-empty { display: inline-flex; flex-direction: column; align-items: center; gap: 6px; color: var(--accent); opacity: .8; }
+.slot-hint { display: inline-flex; align-items: center; gap: 4px; }
 .slot-wrap { display: block; }
 
 .hand { margin-bottom: var(--space-md); }
-.hand-label { font-size: var(--fs-caption); color: var(--ink-muted); font-weight: 800; margin-bottom: var(--space-xs); }
+.hand-label { font-size: var(--fs-body-sm); color: var(--ink); font-weight: 800; margin-bottom: var(--space-xs); }
 .hand-cards { display: flex; flex-wrap: wrap; gap: var(--space-xs); }
 .hand-empty { color: var(--ink-muted); font-size: var(--fs-body-sm); font-weight: 700; }
 
@@ -80,17 +142,21 @@
 .command-row { display: flex; align-items: center; gap: var(--space-xs); margin-bottom: var(--space-sm); }
 .trigger-slot {
   flex: 0 0 auto; min-width: 110px; min-height: 56px;
-  background: var(--board);
+  /* 空＝凹んだ“貼れる場所”。タイムラインの空スロットと同じ言語に統一 */
+  background: var(--accent-tint);
+  box-shadow: inset 0 2px 6px rgba(67, 38, 184, 0.08);
   border: var(--border-slot);
   border-radius: var(--radius-sm);
   display: flex; align-items: center; justify-content: center;
   padding: var(--space-2xs);
+  transition: background var(--motion-base), border-color var(--motion-base);
 }
 .trigger-slot.active { border-color: var(--accent); background: var(--accent-tint); animation: pulse 1.2s infinite; }
-.trigger-slot.filled { border-style: solid; border-color: var(--state-ok); }
+/* 接続済み＝確定。実線＋白板＋影なし（点線=未確定 / 実線=確定） */
+.trigger-slot.filled { background: var(--board); border-style: solid; border-color: var(--state-ok); box-shadow: none; }
 /* MODE2 接続成立の演出（赤破線→緑実線の発光、§4.2 250ms） */
 .trigger-slot.just-linked { animation: wireConnect 250ms var(--ease-out) 1; }
-.connector { color: var(--ink-muted); font-weight: 800; font-size: 1.2rem; }
+.connector { display: inline-flex; align-items: center; color: var(--accent); flex: none; }
 .tray { margin: var(--space-md) 0; }
 
 /* ===== 章（chapter） ===== */
@@ -103,11 +169,19 @@
   border-bottom: var(--border-subtle);
 }
 .chapter-title.done { color: var(--state-ok-ink); }
-.chapter-icon { font-size: 1.3rem; }
+/* 章アイコンは node-icon と同じ「枠付きタイル」言語に統一（枠あり/なしの揺れをなくす） */
+.chapter-icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 30px; height: 30px; flex: none;
+  border-radius: var(--radius-sm);
+  background: var(--accent-tint); color: var(--accent);
+}
+.chapter-title.done .chapter-icon { background: #e3f5ea; color: var(--state-ok); }
 .chapter-badge {
+  display: inline-flex; align-items: center; gap: 4px;
   margin-left: auto; font-size: var(--fs-caption); font-weight: 800;
   background: var(--state-ok); color: #fff;
-  border-radius: var(--radius-pill); padding: 2px 10px;
+  border-radius: var(--radius-pill); padding: 3px 11px;
 }
 
 /* ===== MODE3 不変条件ゲート ===== */
@@ -150,16 +224,20 @@
 .agg-invariants-label { font-size: var(--fs-caption); font-weight: 800; color: var(--ink-muted); margin-bottom: var(--space-2xs); }
 .agg-invariants ul { margin: 0; padding: 0; list-style: none; }
 .agg-invariants li { font-size: var(--fs-body); font-weight: 600; margin: var(--space-2xs) 0; padding-left: 1.2em; position: relative; }
-.agg-invariants li::before { content: "✓"; position: absolute; left: 0; font-weight: 800; color: var(--state-ok); }
+/* これは「照合すべきルール」であって「満たし済み」ではない。
+   緑✓は判断後の gate-feedback.ok 専用にし、ここは中立マーカーにする（学習の誠実さ・②）。 */
+.agg-invariants li::before { content: "›"; position: absolute; left: 0; font-weight: 800; color: var(--ink-muted); }
 
-.incoming-command { text-align: center; margin-bottom: var(--space-md); }
+/* 集約パネル（参照）より「いま判定する対象」を主役にする＝間隔と影で前に出す */
+.incoming-command { text-align: center; margin: var(--space-lg) 0 var(--space-md); }
 .incoming-ask { display: block; font-size: var(--fs-body-sm); font-weight: 700; color: var(--ink-muted); margin-bottom: var(--space-xs); }
 .cmd-card {
   display: inline-flex; flex-direction: column; align-items: flex-start; gap: 4px;
-  background: var(--paper); border: 1px solid var(--line, #e2e6ec);
+  background: var(--board); border: 1px solid var(--line, #e2e6ec);
   border-left: 4px solid;
-  border-radius: var(--radius-md); padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-md); padding: var(--space-md);
   min-width: 220px; text-align: left;
+  box-shadow: var(--shadow-card);
 }
 .cmd-badge {
   display: inline-flex; align-items: center; gap: 4px;
@@ -169,12 +247,14 @@
 .cmd-label { font-size: var(--fs-heading); font-weight: 800; }
 /* 判断「後」の結果フィードバック（発行イベント / 弾いた理由）。判断前には出さない */
 .gate-feedback {
+  display: flex; align-items: center; justify-content: center; gap: 6px;
   font-size: var(--fs-body-sm); font-weight: 700;
   margin: 0 auto var(--space-md); max-width: 320px;
   padding: var(--space-xs) var(--space-sm);
   border-radius: var(--radius-sm); text-align: center;
   animation: toastIn var(--motion-base) var(--ease-out);
 }
+.gate-fb-icon { flex: none; }
 .gate-feedback.ok { background: #e9f5ea; color: var(--state-ok-ink); }
 .gate-feedback.reject { background: var(--state-error-tint); color: var(--state-error); }
 
@@ -199,70 +279,118 @@
   color: #fff;
   text-align: center;
 }
-.result-title { font-size: var(--fs-display); font-weight: 900; margin-top: var(--space-md); }
-.stars-big { font-size: 2.4rem; color: var(--es-event); letter-spacing: 4px; margin: var(--space-sm) 0; }
-.stars-big .dim { color: rgba(255,255,255,.25); }
-.result-sub { opacity: .9; margin-bottom: var(--space-lg); }
+/* 画面の主役は1つ＝タイトルを stat より大きく */
+.result-title { font-size: var(--fs-display-lg); font-weight: 900; line-height: 1.2; margin-top: var(--space-md); }
+.stars-big { display: flex; align-items: center; justify-content: center; gap: var(--space-2xs); margin: var(--space-sm) 0 var(--space-xs); }
+.stars-big .lucide { width: 44px; height: 44px; }
+.stars-big .star-on { color: var(--reward); filter: drop-shadow(0 3px 8px rgba(245,166,35,.45)); }
+.stars-big .star-off { color: rgba(255,255,255,.28); }
+.result-sub { opacity: .9; margin-bottom: var(--space-lg); font-size: var(--fs-body-sm); }
 
-.vocab-card { border-radius: var(--radius-md); padding: var(--space-md); margin: 0 auto var(--space-lg); max-width: 340px; box-shadow: var(--shadow-card); text-align: left; }
-.vocab-new { font-size: var(--fs-caption); font-weight: 900; letter-spacing: var(--ls-wide); opacity: .8; }
-.vocab-icon { font-size: 1.8rem; }
+/* 報酬クラスタ（語彙＋実務解説）は近接させ、CTA とは大きく離す */
+.vocab-card { border-radius: var(--radius-md); padding: var(--space-md); margin: 0 auto var(--space-sm); max-width: 340px; box-shadow: var(--shadow-card); text-align: left; }
+.vocab-new { display: inline-flex; align-items: center; gap: 4px; font-size: var(--fs-caption); font-weight: 900; letter-spacing: var(--ls-wide); opacity: .85; }
+.vocab-icon { display: inline-flex; margin: var(--space-2xs) 0; }
 .vocab-ja { font-size: var(--fs-title); font-weight: 900; }
 .vocab-en { font-size: var(--fs-body-sm); opacity: .8; font-weight: 700; margin-bottom: var(--space-xs); }
-.vocab-def { font-size: var(--fs-body-sm); line-height: var(--lh-body); }
+/* 語彙定義・実務解説は学習の主役（①②）。装飾見出しより小さくしない */
+.vocab-def { font-size: var(--fs-body); line-height: var(--lh-body); }
 
-.reality { background: rgba(255,255,255,.08); border-radius: var(--radius-md); padding: var(--space-md); text-align: left; margin-bottom: var(--space-lg); font-size: var(--fs-body-sm); }
-.reality strong { display: block; margin-bottom: var(--space-2xs); }
+/* 実務解説は「ふきだし的な余談」。上のハイライト＋左の中立ルールで next-chapter と差別化 */
+.reality {
+  background: rgba(255,255,255,.08);
+  border-radius: var(--radius-md);
+  border-left: 3px solid var(--accent-soft);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.1);
+  padding: var(--space-md); text-align: left; margin-bottom: var(--space-xl); font-size: var(--fs-body);
+}
+.reality strong { display: inline-flex; align-items: center; gap: 6px; margin-bottom: var(--space-2xs); }
+/* 金は「獲得・達成」専用。情報アイコンはアクセント側に寄せて配色ロジックを明確化 */
+.reality strong .lucide { color: var(--accent-soft); }
 .reality p { opacity: .92; }
 .reality-long { margin-top: var(--space-xs); opacity: .85; }
-.more-btn { background: none; border: none; color: var(--es-event); font-weight: 800; padding: var(--space-2xs) 0; }
+.more-btn { display: inline-flex; align-items: center; gap: 4px; background: none; border: none; color: var(--accent-soft); font-weight: 800; padding: var(--space-2xs) 0; }
 .chain-box { margin-top: var(--space-sm); padding-top: var(--space-sm); border-top: 1px solid rgba(255,255,255,.2); }
-.chain-box strong { color: var(--es-policy); }
+.chain-box strong { display: inline-flex; align-items: center; gap: 6px; color: #fff; }
+.chain-box strong .lucide { color: var(--accent-soft); }
 
 /* 章クリア帯（result の screen-dark 上）。章は記法でないので記法色を使わず中立に */
+/* 星バーストを唯一の主役にするため、章クリア帯は控えめに（副次の達成） */
 .chapter-clear {
   display: flex; align-items: center; justify-content: center; gap: var(--space-xs);
-  background: rgba(255,255,255,.1);
-  border-radius: var(--radius-md);
-  padding: var(--space-sm) var(--space-md);
+  background: rgba(255,255,255,.08);
+  border-radius: var(--radius-pill);
+  padding: var(--space-2xs) var(--space-md);
   margin: 0 auto var(--space-md); max-width: 340px;
-  font-weight: 800;
+  font-weight: 700;
   animation: chapterPop var(--motion-base) var(--ease-out);
 }
-.cc-badge { font-size: 1.4rem; }
-.cc-text { font-size: var(--fs-body); }
+.cc-badge { display: inline-flex; align-items: center; color: var(--reward); }
+.cc-text { font-size: var(--fs-body-sm); }
 @keyframes chapterPop { from { opacity: 0; transform: scale(.92); } to { opacity: 1; transform: scale(1); } }
 
 /* 章ごとの進捗バー（全体バーより細く） */
 .chapter-progress { height: 6px; margin: var(--space-2xs) 0 var(--space-sm); }
 
 /* ===== Complete ===== */
-.finish-emoji { font-size: 3.5rem; margin-top: var(--space-md); }
+.finish-emoji {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 96px; height: 96px; margin: var(--space-md) auto var(--space-xs);
+  border-radius: var(--radius-pill);
+  /* ヒーローと同じ grad-joy を使い回さず、放射状＋金リングで“達成”固有の見た目に */
+  background: radial-gradient(circle at 50% 38%, #8f72ff, var(--accent-dark));
+  color: #fff;
+  box-shadow: 0 14px 40px rgba(67, 38, 184, 0.5), 0 0 0 6px rgba(245, 166, 35, 0.22),
+    inset 0 2px 0 rgba(255, 255, 255, 0.35);
+}
 .finish-lead { opacity: .92; margin: var(--space-sm) auto var(--space-lg); max-width: 360px; }
 .finish-stats { display: flex; justify-content: center; gap: var(--space-xl); margin-bottom: var(--space-lg); }
-.stat { display: flex; flex-direction: column; }
-.stat-num { font-size: var(--fs-display); font-weight: 900; color: var(--es-event); }
+.stat { display: flex; flex-direction: column; align-items: center; }
+.stat-num { font-size: var(--fs-display); font-weight: 900; color: var(--reward); }
 .stat-lbl { font-size: var(--fs-caption); opacity: .8; font-weight: 700; }
-.next-chapter { background: rgba(255,255,255,.08); border-radius: var(--radius-md); padding: var(--space-md); text-align: left; margin: var(--space-lg) 0; transform: rotate(-1deg); }
-.nc-label { font-size: var(--fs-caption); font-weight: 900; letter-spacing: var(--ls-wide); color: var(--es-event); }
-.nc-title { font-size: var(--fs-heading); font-weight: 800; margin: var(--space-2xs) 0; }
+/* 予告は「これから来るもの」＝点線＋淡い地で reality（実線・余談）と役割差を出す */
+.next-chapter { background: rgba(255,255,255,.05); border: 1px dashed rgba(255,255,255,.28); border-radius: var(--radius-md); padding: var(--space-md); text-align: left; margin: var(--space-lg) 0; }
+.nc-label { font-size: var(--fs-caption); font-weight: 900; letter-spacing: var(--ls-wide); color: var(--accent-soft); }
+.nc-title { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-heading); font-weight: 800; margin: var(--space-2xs) 0; }
+.nc-title .lucide { color: var(--accent-soft); }
 .nc-def { font-size: var(--fs-body-sm); opacity: .9; line-height: var(--lh-body); }
 .finish-note { font-size: var(--fs-body-sm); opacity: .8; margin: var(--space-md) 0; }
 
 /* ===== Onboarding ===== */
 .onboarding { display: flex; flex-direction: column; align-items: center; }
-.onboarding .kicker { font-size: var(--fs-caption); letter-spacing: var(--ls-wide); color: var(--es-event); font-weight: 800; margin-top: var(--space-md); }
+/* 最初の画面こそ作り込む: タイトル＋導入をブランドのパネルに収める */
+.onboard-hero {
+  position: relative; overflow: hidden;
+  width: 100%; text-align: center;
+  background: var(--grad-joy);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg) var(--space-md);
+  margin-bottom: var(--space-xl);
+  box-shadow: 0 16px 40px rgba(67, 38, 184, 0.34);
+}
+.onboard-hero::after {
+  content: ""; position: absolute; top: -45%; left: -15%;
+  width: 220px; height: 220px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,255,255,.32), rgba(255,255,255,0) 70%);
+  pointer-events: none;
+}
+.onboard-hero > * { position: relative; }
+.onboard-hero .kicker, .onboard-lead { text-shadow: 0 1px 2px rgba(40, 24, 90, 0.45); }
+.onboarding .kicker { font-size: var(--fs-caption); letter-spacing: var(--ls-wide); color: rgba(255,255,255,.95); font-weight: 800; }
 .onboard-title { font-size: var(--fs-display); font-weight: 900; margin: var(--space-xs) 0; }
-.onboard-title .hl { color: var(--es-event); }
-.onboard-lead { opacity: .92; max-width: 360px; margin-bottom: var(--space-xl); font-size: var(--fs-body); }
+.onboard-title .hl { color: var(--reward); }
+.onboard-lead { opacity: .95; max-width: 360px; margin: 0 auto; font-size: var(--fs-body); }
 .onboard-board { width: 100%; margin-bottom: var(--space-xl); }
 .onboard-slot {
   border: var(--border-slot); border-radius: var(--radius-md);
   min-height: 90px; display: flex; align-items: center; justify-content: center;
   background: rgba(255,255,255,.06);
 }
-.onboard-slot.filled { border-color: var(--es-event); border-style: solid; }
+.onboard-slot.filled { border-color: var(--accent); border-style: solid; }
 .onboard-hand { background: none; border: none; padding: 0; }
 .onboard-success { animation: toastIn var(--motion-base) var(--ease-out); }
-.success-msg { background: rgba(46,125,50,.25); border-radius: var(--radius-md); padding: var(--space-md); margin-bottom: var(--space-md); font-weight: 700; }
+.success-msg { display: flex; align-items: flex-start; gap: 8px; background: rgba(46,158,91,.28); border-radius: var(--radius-md); padding: var(--space-md); margin-bottom: var(--space-md); font-weight: 700; }
+.success-msg .lucide { color: #fff; flex: none; margin-top: 3px; }
+.onboard-tip { font-size: var(--fs-body-sm); }
+.onboard-tip .tip-i { vertical-align: -0.2em; }
 .onboarding .skip { max-width: 200px; margin-top: var(--space-lg); }

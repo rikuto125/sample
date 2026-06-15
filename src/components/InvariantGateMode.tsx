@@ -6,6 +6,7 @@ import type {
 } from '../game/types'
 import { commandPasses, applyCommand } from '../game/engine'
 import { CARD_META } from '../game/cardMeta'
+import { Icon } from './Icon'
 import { soundEngine as sound } from '../game/sound'
 
 interface Props {
@@ -35,11 +36,13 @@ export function InvariantGateMode({
   const [flash, setFlash] = useState<'ok' | 'reject' | null>(null)
   // 判断「後」に出す結果フィードバック（通った→発行イベント / 弾いた→理由）。
   // 判断「前」に答えを漏らさないため、ここでしか emitsEventJa / rejectReason を出さない。
-  const [feedback, setFeedback] = useState<string | null>(null)
+  const [feedback, setFeedback] = useState<{
+    kind: 'ok' | 'reject'
+    text: string
+  } | null>(null)
 
   const aggMeta = CARD_META.aggregate
   const cmdMeta = CARD_META.command
-  const eventMeta = CARD_META.event
   const step = stage.steps[idx]
   const done = idx >= stage.steps.length
 
@@ -53,8 +56,8 @@ export function InvariantGateMode({
       setFlash(passes ? 'ok' : 'reject')
       setFeedback(
         passes
-          ? `${eventMeta.icon} ${step.emitsEventJa}（イベント発行）`
-          : `⛔ 弾いた — ${step.rejectReason}`,
+          ? { kind: 'ok', text: `${step.emitsEventJa}（イベント発行）` }
+          : { kind: 'reject', text: `弾いた — ${step.rejectReason}` },
       )
       const nextIdx = idx + 1
       setTimeout(() => setFlash(null), 600)
@@ -100,7 +103,7 @@ export function InvariantGateMode({
       >
         <div className="agg-head">
           <span className="agg-badge" style={{ background: aggMeta.color, color: aggMeta.ink }}>
-            <span aria-hidden>{aggMeta.icon}</span> 集約
+            <Icon name={aggMeta.icon} size={14} /> 集約
           </span>
           <span className="agg-name">{stage.aggregateJa}</span>
         </div>
@@ -135,7 +138,7 @@ export function InvariantGateMode({
             </span>
             <div className="cmd-card" style={{ borderLeftColor: cmdMeta.ink }}>
               <span className="cmd-badge" style={{ background: cmdMeta.color, color: cmdMeta.ink }}>
-                <span aria-hidden>{cmdMeta.icon}</span> コマンド
+                <Icon name={cmdMeta.icon} size={14} /> コマンド
                 {onInfo && (
                   <button
                     type="button"
@@ -144,7 +147,7 @@ export function InvariantGateMode({
                     onClick={() => onInfo('command')}
                     aria-label="コマンドの意味"
                   >
-                    ⓘ
+                    <Icon name="info" size={14} />
                   </button>
                 )}
               </span>
@@ -154,18 +157,23 @@ export function InvariantGateMode({
 
           {/* 判断「後」の結果フィードバック */}
           {feedback && (
-            <div className={`gate-feedback ${flash ?? ''}`} role="status">
-              {feedback}
+            <div className={`gate-feedback ${feedback.kind}`} role="status">
+              <Icon
+                name={feedback.kind === 'ok' ? 'event' : 'gate'}
+                size={16}
+                className="gate-fb-icon"
+              />{' '}
+              {feedback.text}
             </div>
           )}
 
-          {/* 2択：色だけに頼らず 記号(✓/⊘)＋ラベル で冗長化（色覚対応） */}
+          {/* 2択：色だけに頼らず アイコン(✓/⊘)＋ラベル で冗長化（色覚対応） */}
           <div className="gate-decision">
             <button className="gate-btn pass" onClick={() => decide(true)}>
-              <span className="gate-icon" aria-hidden>✓</span> 通す
+              <Icon name="check" size={20} className="gate-icon" /> 通す
             </button>
             <button className="gate-btn reject" onClick={() => decide(false)}>
-              <span className="gate-icon" aria-hidden>⊘</span> 弾く
+              <Icon name="gate" size={20} className="gate-icon" /> 弾く
             </button>
           </div>
         </>
@@ -173,13 +181,13 @@ export function InvariantGateMode({
 
       <div className="play-actions">
         <button
-          className="btn-ghost"
+          className="btn-ghost btn-hint"
           onClick={() => {
             setShowHint(true)
             setUsedHint(true)
           }}
         >
-          ヒント（★が下がる）
+          <Icon name="hint" size={18} /> ヒント（星が下がる）
         </button>
         {showHint && (
           <p className="hint-text">

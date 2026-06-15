@@ -17,12 +17,29 @@ body {
 
 button { font-family: inherit; cursor: pointer; }
 
+/* lucide アイコン共通: テキストと自然に揃え、潰れないよう最小サイズを保つ */
+.lucide { vertical-align: -0.16em; flex: none; }
+
+/* 星（SVG）: 獲得＝金の塗り、未獲得＝淡い抜き。色だけでなく塗り／抜きでも判別可能。
+   金は白地で薄いため、濃いめの輪郭ストロークでエッジのコントラストを確保する。 */
+.stars { display: inline-flex; align-items: center; gap: 3px; }
+.star-on { color: var(--reward); stroke: var(--reward-ink); }
+.star-off { color: var(--line); }
+.screen-dark .star-off { color: rgba(255, 255, 255, 0.32); }
+/* 本文行に混ぜる小さな星（進捗テキスト・統計ラベル）は金で揃える */
+.pct-star, .lbl-star { color: var(--reward); stroke: var(--reward-ink); vertical-align: -0.12em; }
+.screen-dark .lbl-star { color: var(--reward); }
+
 /* ===== アプリシェル ===== */
 .app-shell {
   min-height: 100dvh;
   display: flex;
   justify-content: center;
-  background: var(--bg-outer);
+  /* フラットな暗紫の“死んだ余白”をやめ、フレーム背後にやわらかい光を置く */
+  background:
+    radial-gradient(120% 80% at 50% -10%, rgba(109, 74, 255, 0.4), rgba(109, 74, 255, 0) 60%),
+    radial-gradient(90% 60% at 50% 110%, rgba(255, 92, 138, 0.18), rgba(255, 92, 138, 0) 55%),
+    var(--bg-outer);
 }
 
 .app-frame {
@@ -53,29 +70,32 @@ button { font-family: inherit; cursor: pointer; }
   align-items: center;
   gap: var(--space-sm);
   padding: var(--space-sm) var(--space-md);
-  background: linear-gradient(135deg, var(--accent-dark), var(--accent));
+  background: var(--grad-brand);
   color: #fff;
 }
 .appbar .title { font-weight: 800; letter-spacing: var(--ls-wide); flex: 1; }
-.appbar .title .app { color: var(--es-event); }
+.appbar .title .app { color: #fff; }
 .appbar .back, .appbar .stars-pill {
+  display: inline-flex; align-items: center; gap: 5px;
   background: rgba(255,255,255,.16);
   border: 1px solid rgba(255,255,255,.3);
   color: #fff;
   border-radius: var(--radius-pill);
-  padding: 4px 12px;
+  padding: 5px 12px;
   font-size: var(--fs-caption);
   font-weight: 700;
 }
-/* 音 ON/OFF トグル（状態は色でなくアイコン🔊/🔇形状で示す）。タップ標的 ≥44px */
+.appbar .stars-pill .lucide { color: var(--reward); }
+/* 音 ON/OFF トグル（状態は色でなく Volume2 / VolumeX のアイコン形状で示す）。タップ標的 ≥44px */
 .snd-toggle {
+  display: inline-flex; align-items: center; justify-content: center;
   background: rgba(255,255,255,.16);
   border: 1px solid rgba(255,255,255,.3);
   border-radius: var(--radius-pill);
   color: #fff;
   min-width: 44px; min-height: 36px;
   padding: 4px 10px; margin-right: var(--space-2xs);
-  font-size: var(--fs-body); cursor: pointer; line-height: 1;
+  cursor: pointer; line-height: 1;
 }
 .snd-toggle:active { transform: translateY(1px); }
 
@@ -83,23 +103,26 @@ button { font-family: inherit; cursor: pointer; }
 
 /* ===== ボタン ===== */
 .btn-primary {
-  display: block;
+  display: flex; align-items: center; justify-content: center; gap: var(--space-xs);
   width: 100%;
   border: none;
   border-radius: var(--radius-md);
-  background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+  background: var(--grad-brand);
   color: #fff;
   font-size: var(--fs-heading);
   font-weight: 800;
   padding: var(--space-md);
-  box-shadow: var(--shadow-card);
-  transition: transform var(--motion-fast) var(--ease-out), filter var(--motion-fast);
+  box-shadow: 0 10px 24px rgba(67, 38, 184, 0.34);
+  transition: transform var(--motion-fast) var(--ease-out), filter var(--motion-fast),
+    box-shadow var(--motion-base) var(--ease-out);
 }
-.btn-primary:active { transform: translateY(1px) scale(0.99); filter: brightness(1.05); }
-.btn-primary:disabled { opacity: .5; filter: grayscale(.4); cursor: not-allowed; }
+.btn-primary:hover { filter: brightness(1.04); box-shadow: 0 14px 30px rgba(67, 38, 184, 0.42); }
+.btn-primary:active { transform: translateY(1px) scale(0.99); filter: brightness(1.06); }
+.btn-primary:disabled { opacity: .45; filter: grayscale(.4); cursor: not-allowed; box-shadow: none; }
 
 .btn-ghost {
-  display: block; width: 100%;
+  display: flex; align-items: center; justify-content: center; gap: var(--space-xs);
+  width: 100%;
   background: transparent;
   border: 2px solid var(--accent);
   color: var(--accent);
@@ -107,8 +130,21 @@ button { font-family: inherit; cursor: pointer; }
   font-weight: 800;
   padding: var(--space-sm);
   margin-top: var(--space-sm);
+  transition: background var(--motion-fast), color var(--motion-fast);
 }
-.btn-ghost.on-dark { border-color: rgba(255,255,255,.4); color: rgba(255,255,255,.92); }
+.btn-ghost:hover { background: var(--accent-tint); }
+.btn-ghost.on-dark { border-color: rgba(255,255,255,.55); color: rgba(255,255,255,.95); }
+.btn-ghost.on-dark:hover { background: rgba(255,255,255,.1); }
+/* ヒントは控えめな補助アクション（CTA と明確に差を付ける＝幅を詰め副次扱い） */
+.btn-hint {
+  width: auto; margin: 0 auto var(--space-sm);
+  border-color: transparent; background: var(--surface-sunken);
+  color: var(--ink-muted);
+  font-size: var(--fs-caption); font-weight: 700;
+  padding: var(--space-2xs) var(--space-sm);
+}
+.btn-hint:hover { background: var(--accent-tint); }
+.btn-hint .lucide { color: var(--state-warn); }
 
 :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 
@@ -134,10 +170,10 @@ button { font-family: inherit; cursor: pointer; }
 }
 .sticky .meta {
   display: flex; align-items: center; gap: 4px;
-  font-size: var(--fs-caption); font-weight: 800; opacity: .82;
+  font-size: var(--fs-caption); font-weight: 800; opacity: .88;
   margin-bottom: 2px;
 }
-.sticky .meta .icon { font-size: 1em; }
+.sticky .meta .icon { flex: none; }
 .sticky.small { font-size: var(--fs-sticky-sm); }
 .sticky.dragging { box-shadow: var(--shadow-sticky-drag); }
 .sticky.in-hand { cursor: grab; }
@@ -159,8 +195,9 @@ button { font-family: inherit; cursor: pointer; }
 
 /* 付箋の i ボタン（種別の定義を引く）。色は付箋 ink を流用しコントラスト確保 */
 .sticky-info {
+  display: inline-flex; align-items: center; justify-content: center;
   border: none; background: none; cursor: pointer;
-  font: inherit; font-size: .9em; opacity: .75; line-height: 1;
+  font: inherit; opacity: .7; line-height: 1;
   padding: 4px; margin: -4px -2px -4px 2px; /* 視覚は小・タップ標的は確保 */
   touch-action: auto; /* 親 .sticky の touch-action:none を上書きしてタップを通す */
 }
@@ -181,7 +218,7 @@ button { font-family: inherit; cursor: pointer; }
 .def-sheet {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 60;
   max-width: var(--app-max); margin: 0 auto;
-  max-height: 40vh; overflow-y: auto;
+  max-height: min(72vh, 560px); overflow-y: auto;
   background: var(--paper); color: var(--ink);
   border-radius: var(--radius-lg) var(--radius-lg) 0 0;
   box-shadow: var(--shadow-card);
@@ -195,11 +232,16 @@ button { font-family: inherit; cursor: pointer; }
   font-size: var(--fs-body-sm); font-weight: 800;
 }
 .def-pill-icon { font-size: 1em; }
-.def-en { font-size: var(--fs-caption); color: var(--ink-faint); font-weight: 700; }
+.def-en { font-size: var(--fs-caption); color: var(--ink-muted); font-weight: 700; }
 .def-close {
-  margin-left: auto; border: none; background: none; cursor: pointer;
-  font-size: var(--fs-title); line-height: 1; color: var(--ink-muted); padding: 0 4px;
+  margin-left: auto; flex: none;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 40px; height: 40px;
+  border: none; cursor: pointer; line-height: 1;
+  color: var(--ink-muted); background: var(--surface-sunken);
+  border-radius: var(--radius-pill);
 }
+.def-close:hover { background: var(--accent-tint); color: var(--accent); }
 .def-body { font-size: var(--fs-body); line-height: var(--lh-body); margin: 0; }
 .def-note { font-size: var(--fs-caption); color: var(--ink-muted); margin: var(--space-sm) 0 0; }
 /* 直感の足場（正式定義の前）。色は付けず左ボーダー＋淡色で「定義ではない補助」と階層化 */
@@ -218,23 +260,43 @@ button { font-family: inherit; cursor: pointer; }
 
 /* ===== シナリオ ===== */
 .scenario {
+  display: flex; gap: var(--space-sm);
   background: var(--scenario-bg);
   border-radius: var(--radius-md);
   padding: var(--space-md);
   font-size: var(--fs-body);
   margin-bottom: var(--space-md);
 }
+.scenario-icon { color: var(--accent); flex: none; margin-top: 3px; }
 /* 指示は「今やること」。読みやすい通常ウェイトの黒に（青太字をやめる #3） */
-.instruction { font-size: var(--fs-body); font-weight: 600; margin-bottom: var(--space-md); color: var(--ink); }
+.instruction {
+  display: flex; gap: var(--space-sm); align-items: flex-start;
+  font-size: var(--fs-body); font-weight: 600; margin-bottom: var(--space-md); color: var(--ink);
+}
+.instruction-icon { color: var(--accent); flex: none; margin-top: 3px; }
 .modelabel { font-size: var(--fs-caption); font-weight: 800; letter-spacing: var(--ls-wide); color: var(--ink-muted); }
 
 /* 説明＋凡例は畳んで密度を下げる（#2）。既定は閉じる */
 .stage-brief { margin-bottom: var(--space-md); }
+/* タップできる「行」として見せる: 既定マーカーを消し、面＋シェブロンで開閉を明示 */
 .stage-brief > summary {
-  font-size: var(--fs-body-sm); font-weight: 700; color: var(--ink-muted);
-  cursor: pointer; padding: var(--space-2xs) 0; list-style-position: inside;
+  display: flex; align-items: center; gap: var(--space-xs);
+  font-size: var(--fs-body-sm); font-weight: 700; color: var(--accent-dark);
+  cursor: pointer; list-style: none;
+  background: var(--surface-sunken);
+  border-radius: var(--radius-sm);
+  padding: var(--space-sm) var(--space-md);
+  min-height: 44px;
 }
-.stage-brief[open] > summary { margin-bottom: var(--space-sm); }
+.stage-brief > summary::-webkit-details-marker { display: none; }
+.stage-brief > summary:hover { background: var(--accent-tint); }
+.brief-lead { color: var(--accent); flex: none; }
+.brief-chev { margin-left: auto; color: var(--ink-muted); transition: transform var(--motion-base) var(--ease-out); }
+.stage-brief[open] > summary { border-radius: var(--radius-sm) var(--radius-sm) 0 0; }
+.stage-brief[open] .brief-chev { transform: rotate(180deg); }
+.stage-brief[open] > summary { margin-bottom: 0; }
+.stage-brief[open] .scenario { border-radius: 0; margin-bottom: 0; }
+.stage-brief[open] .legend { margin-top: var(--space-sm); margin-bottom: var(--space-sm); padding: 0 var(--space-2xs); }
 
 /* ===== トースト ===== */
 .toast {
