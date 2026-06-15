@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useStore } from '../store'
 import { Sticky } from './Sticky'
+import { Icon } from './Icon'
 import { RichText } from './RichText'
 import { DefinitionSheet } from './DefinitionSheet'
 import { GLOSSARY } from '../game/glossary'
@@ -33,19 +34,21 @@ export function Onboarding() {
 
   return (
     <div className="screen onboarding screen-dark">
-      <div className="kicker">ようこそ StormQuest へ</div>
-      <h1 className="onboard-title">
-        まず、<span className="hl">1枚だけ</span>置いてみよう
-      </h1>
-      <p className="onboard-lead">
-        オレンジの付箋は「<strong>過去に起きた事実</strong>」＝
-        <RichText
-          text="ドメインイベント"
-          terms={ONBOARD_TERMS}
-          onOpenDef={setDef}
-        />
-        。 下の付箋を、タイムラインにタップで置いてみて。
-      </p>
+      <div className="onboard-hero">
+        <div className="kicker">ようこそ StormQuest へ</div>
+        <h1 className="onboard-title">
+          まず、<span className="hl">1枚だけ</span>置いてみよう
+        </h1>
+        <p className="onboard-lead">
+          オレンジの付箋は「<strong>過去に起きた事実</strong>」＝
+          <RichText
+            text="ドメインイベント"
+            terms={ONBOARD_TERMS}
+            onOpenDef={setDef}
+          />
+          。 下の付箋を、タイムラインにタップで置いてみて。
+        </p>
+      </div>
 
       <div className="onboard-board">
         <div className={`onboard-slot ${placed ? 'filled' : ''}`}>
@@ -70,15 +73,15 @@ export function Onboarding() {
       ) : (
         <div className="onboard-success">
           <p className="success-msg">
-            🎉 いいね！ これがドメインイベント。
+            <Icon name="sparkles" size={18} /> いいね！ これがドメインイベント。
             「〜した／された」と過去形で書くのがポイント。
           </p>
           <p className="onboard-tip">
-            分からない用語は <span className="chip-i" aria-hidden>ⓘ</span> や点線の語を
+            分からない用語は <Icon name="info" size={14} className="tip-i" /> や点線の語を
             タップ すると意味が見られます。
           </p>
           <button className="btn-primary" onClick={() => finish(false)}>
-            ゲームを始める ▶
+            ゲームを始める <Icon name="next" size={18} />
           </button>
         </div>
       )}

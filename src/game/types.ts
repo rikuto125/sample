@@ -72,7 +72,7 @@ interface StageBase {
   name: string
   icon: string
   modeLabel: string
-  /** 状況説明（📜） */
+  /** 状況説明 */
   scenario: string
   instruction: string
   /** 獲得できる主要語彙 */
@@ -165,7 +165,7 @@ export type InvariantGuard =
  */
 export interface InvariantGateStage extends StageBase {
   mode: 'invariant'
-  /** 集約名（淡黄📦カードで表示） */
+  /** 集約名（淡黄カードで表示） */
   aggregateJa: string
   /** 集約の初期状態 */
   initialState: AggregateState

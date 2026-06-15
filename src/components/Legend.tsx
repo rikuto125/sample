@@ -1,4 +1,5 @@
 import { CARD_META } from '../game/cardMeta'
+import { Icon } from './Icon'
 import type { CardKind } from '../game/types'
 
 const ORDER: CardKind[] = [
@@ -34,17 +35,15 @@ export function Legend({ kinds = ORDER, onOpenDef }: LegendProps) {
               aria-label={`${m.labelJa}の意味を見る`}
               aria-haspopup="dialog"
             >
-              <span aria-hidden>{m.icon}</span>
+              <Icon name={m.icon} size={14} />
               {m.labelJa}
-              <span className="chip-i" aria-hidden>
-                ⓘ
-              </span>
+              <Icon name="info" size={13} className="chip-i" />
             </button>
           )
         }
         return (
           <span key={k} className="chip" style={style}>
-            <span aria-hidden>{m.icon}</span>
+            <Icon name={m.icon} size={14} />
             {m.labelJa}
           </span>
         )

@@ -3,6 +3,7 @@ import type { Card, CardKind, TriggerStage } from '../game/types'
 import { checkTriggers, isValidLink } from '../game/engine'
 import { CARD_META } from '../game/cardMeta'
 import { Sticky } from './Sticky'
+import { Icon } from './Icon'
 import { shuffle } from '../game/shuffle'
 import { soundEngine as sound } from '../game/sound'
 
@@ -86,11 +87,13 @@ export function TriggerMode({ stage, onCorrect, onMistake, onInfo }: Props) {
                 {linked ? (
                   <Sticky card={linked} small />
                 ) : (
-                  <span className="slot-hint">＋ トリガー</span>
+                  <span className="slot-hint">
+                    <Icon name="plus" size={15} /> トリガー
+                  </span>
                 )}
               </button>
               <span className="connector" aria-hidden>
-                →
+                <Icon name="next" size={20} />
               </span>
               <Sticky card={cmd} onInfo={onInfo} showInfo={onInfo != null} />
             </div>
@@ -127,13 +130,13 @@ export function TriggerMode({ stage, onCorrect, onMistake, onInfo }: Props) {
 
       <div className="play-actions">
         <button
-          className="btn-ghost"
+          className="btn-ghost btn-hint"
           onClick={() => {
             setShowHint(true)
             setUsedHint(true)
           }}
         >
-          💡 ヒント（星評価が下がります）
+          <Icon name="hint" size={18} /> ヒント（星評価が下がります）
         </button>
         {showHint && (
           <p className="hint-text">
@@ -142,7 +145,7 @@ export function TriggerMode({ stage, onCorrect, onMistake, onInfo }: Props) {
           </p>
         )}
         <button className="btn-primary" disabled={!allLinked} onClick={check}>
-          接続を確定 ▶
+          接続を確定 <Icon name="next" size={18} />
         </button>
       </div>
     </div>

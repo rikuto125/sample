@@ -1,4 +1,5 @@
 import { CARD_META } from '../game/cardMeta'
+import { Icon } from './Icon'
 import type { Card, CardKind } from '../game/types'
 
 interface StickyProps {
@@ -42,9 +43,7 @@ export function Sticky({
     >
       {showMeta && (
         <span className="meta" style={{ color: meta.ink }}>
-          <span className="icon" aria-hidden>
-            {meta.icon}
-          </span>
+          <Icon name={meta.icon} size={15} className="icon" />
           {meta.labelJa}
           {withInfo && (
             <button
@@ -59,7 +58,7 @@ export function Sticky({
               }}
               aria-label={`${meta.labelJa}の意味`}
             >
-              ⓘ
+              <Icon name="info" size={14} />
             </button>
           )}
         </span>

@@ -3,7 +3,9 @@ import { STAGES, chapterOf, isChapterLastStage } from '../data/stages'
 import { useStore } from '../store'
 import { CARD_META } from '../game/cardMeta'
 import { track } from '../game/analytics'
+import { Icon } from './Icon'
 import { soundEngine as sound } from '../game/sound'
+import { Star } from 'lucide-react'
 
 export function ResultScreen() {
   const { state, dispatch } = useStore()
@@ -27,12 +29,20 @@ export function ResultScreen() {
     <div className="screen result screen-dark">
       <div className="result-title">STAGE CLEAR!</div>
       <div className="stars-big" aria-label={`${stars}つ星`}>
-        {Array.from({ length: stars }, (_, i) => (
-          <span key={i} className="star-pop" style={{ animationDelay: `${i * 90}ms` }} aria-hidden>
-            ★
-          </span>
-        ))}
-        <span className="dim" aria-hidden>{'★'.repeat(3 - stars)}</span>
+        {Array.from({ length: 3 }, (_, i) =>
+          i < stars ? (
+            <Star
+              key={i}
+              className="star-pop star-on"
+              style={{ animationDelay: `${i * 90}ms` }}
+              fill="currentColor"
+              strokeWidth={2}
+              aria-hidden
+            />
+          ) : (
+            <Star key={i} className="star-off" fill="none" strokeWidth={2} aria-hidden />
+          ),
+        )}
       </div>
       <div className="result-sub">
         {stars === 3 && 'ノーミス！ 完璧な理解です。'}
@@ -42,8 +52,8 @@ export function ResultScreen() {
 
       {showChapterClear && (
         <div className="chapter-clear" role="status">
-          <span className="cc-badge" aria-hidden>
-            {chapter.icon}
+          <span className="cc-badge">
+            <Icon name={chapter.icon} size={22} />
           </span>
           <span className="cc-text">{chapter.title} クリア！</span>
         </div>
@@ -51,16 +61,20 @@ export function ResultScreen() {
 
       <div className="vocab-card" style={{ background: m.color, color: m.ink }}>
         <div className="vocab-new" aria-hidden>
-          NEW! 用語を獲得
+          <Icon name="sparkles" size={13} /> NEW! 用語を獲得
         </div>
-        <div className="vocab-icon">{m.icon}</div>
+        <div className="vocab-icon">
+          <Icon name={m.icon} size={30} />
+        </div>
         <div className="vocab-ja">{stage.vocab.ja}</div>
         <div className="vocab-en">{stage.vocab.en}</div>
         <div className="vocab-def">{stage.vocab.def}</div>
       </div>
 
       <div className="reality">
-        <strong>💡 実務ではこうなっている</strong>
+        <strong>
+          <Icon name="hint" size={16} /> 実務ではこうなっている
+        </strong>
         <p>{stage.reality.short}</p>
         {stage.reality.long && (
           <>
@@ -68,14 +82,16 @@ export function ResultScreen() {
               <p className="reality-long">{stage.reality.long}</p>
             ) : (
               <button className="more-btn" onClick={() => setShowMore(true)}>
-                もっと見る ▾
+                もっと見る <Icon name="more" size={15} />
               </button>
             )}
           </>
         )}
         {stage.mode === 'trigger' && stage.chain && (
           <div className="chain-box">
-            <strong>🔗 因果の連鎖</strong>
+            <strong>
+              <Icon name="chain" size={16} /> 因果の連鎖
+            </strong>
             <p>{stage.chain.description}</p>
           </div>
         )}
@@ -89,7 +105,7 @@ export function ResultScreen() {
             dispatch({ type: 'goComplete' })
           }}
         >
-          第1章クリア！ 完走画面へ 🎉
+          第1章クリア！ 完走画面へ <Icon name="trophy" size={18} />
         </button>
       ) : (
         <button
@@ -103,7 +119,7 @@ export function ResultScreen() {
             dispatch({ type: 'nextStage' })
           }}
         >
-          {showChapterClear ? 'つぎの章へ ▶' : 'つぎのステージへ ▶'}
+          {showChapterClear ? 'つぎの章へ' : 'つぎのステージへ'} <Icon name="next" size={18} />
         </button>
       )}
       <button

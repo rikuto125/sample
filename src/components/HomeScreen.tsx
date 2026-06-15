@@ -3,6 +3,8 @@ import { useStore } from '../store'
 import { clearedCount } from '../game/progress'
 import { CARD_META } from '../game/cardMeta'
 import { track } from '../game/analytics'
+import { Icon, Stars } from './Icon'
+import { Star } from 'lucide-react'
 import type { Stage } from '../game/types'
 
 export function HomeScreen() {
@@ -31,11 +33,15 @@ export function HomeScreen() {
         <h1>
           <span className="app">StormQuest</span>
         </h1>
+        <p className="hero-tag">
+          本では掴めなかった「色と文法」を、手を動かして15分で。
+        </p>
         <div className="progressbar">
           <i style={{ width: `${(done / total) * 100}%` }} />
         </div>
         <p className="pct">
-          {done} / {total} ステージ・{totalStarCount}★
+          {done} / {total} ステージ・{totalStarCount}{' '}
+          <Star size={13} fill="currentColor" strokeWidth={2} className="pct-star" aria-hidden />
         </p>
       </div>
 
@@ -50,9 +56,15 @@ export function HomeScreen() {
         return (
           <section key={chapter.id} className="chapter">
             <h3 className={`chapter-title ${chapterDone ? 'done' : ''}`}>
-              <span className="chapter-icon">{chapter.icon}</span>
+              <span className="chapter-icon">
+                <Icon name={chapter.icon} size={22} />
+              </span>
               {chapter.title}
-              {chapterDone && <span className="chapter-badge">クリア</span>}
+              {chapterDone && (
+                <span className="chapter-badge">
+                  <Icon name="check" size={13} /> クリア
+                </span>
+              )}
             </h3>
             <div
               className="progressbar chapter-progress"
@@ -72,17 +84,21 @@ export function HomeScreen() {
                     disabled={locked}
                     onClick={() => startStage(i)}
                   >
-                    <span className="node-icon">{s.icon}</span>
+                    <span className="node-icon">
+                      <Icon name={s.icon} size={26} />
+                    </span>
                     <span className="node-body">
                       <span className="node-name">{s.name}</span>
                       <span className="node-mode">{s.modeLabel}</span>
                     </span>
                     <span className="node-stars">
-                      {stars != null
-                        ? '★'.repeat(stars) + '☆'.repeat(3 - stars)
-                        : locked
-                          ? '🔒'
-                          : '▶'}
+                      {stars != null ? (
+                        <Stars value={stars} size={16} />
+                      ) : locked ? (
+                        <Icon name="lock" size={18} className="node-lock" />
+                      ) : (
+                        <Icon name="next" size={20} className="node-go" />
+                      )}
                     </span>
                   </button>
                 )
@@ -98,7 +114,7 @@ export function HomeScreen() {
 
       {done >= total && (
         <button className="btn-ghost" onClick={() => dispatch({ type: 'goComplete' })}>
-          完走画面を見る 🎉
+          <Icon name="trophy" size={18} /> 完走画面を見る
         </button>
       )}
 
@@ -119,8 +135,8 @@ function VocabCodex({ unlocked }: { unlocked: string[] }) {
   return (
     <div className="codex">
       <h3 className="codex-title">
-        📖 用語図鑑（{unlocked.filter((id) => all.some((v) => v.id === id)).length}/
-        {all.length}）
+        <Icon name="readModel" size={18} /> 用語図鑑（
+        {unlocked.filter((id) => all.some((v) => v.id === id)).length}/{all.length}）
       </h3>
       <div className="codex-grid">
         {all.map((v) => {
@@ -134,14 +150,16 @@ function VocabCodex({ unlocked }: { unlocked: string[] }) {
             >
               {got ? (
                 <>
-                  <span className="codex-icon" aria-hidden>
-                    {m.icon}
+                  <span className="codex-icon">
+                    <Icon name={m.icon} size={18} />
                   </span>
                   <span className="codex-ja">{v.ja}</span>
                   <span className="codex-en">{v.en}</span>
                 </>
               ) : (
-                <span className="codex-locked">？？？</span>
+                <span className="codex-locked">
+                  <Icon name="lock" size={16} />
+                </span>
               )}
             </div>
           )

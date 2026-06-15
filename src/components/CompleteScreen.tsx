@@ -3,6 +3,8 @@ import { STAGES } from '../data/stages'
 import { useStore } from '../store'
 import { totalStars } from '../game/progress'
 import { track } from '../game/analytics'
+import { Icon } from './Icon'
+import { Star } from 'lucide-react'
 import { soundEngine as sound } from '../game/sound'
 
 export function CompleteScreen() {
@@ -17,7 +19,7 @@ export function CompleteScreen() {
   }, [])
 
   function share() {
-    const text = `StormQuest 全章クリア！ ピザデリバリーとタスク管理で EventStorming の記法（集約・不変条件まで）を ${vocabCount}語マスター・${stars}/${maxStars}★ 🌩️`
+    const text = `StormQuest 全章クリア！ ピザデリバリーとタスク管理で EventStorming の記法（集約・不変条件まで）を ${vocabCount}語マスター・${stars}/${maxStars}★`
     const url = 'https://rikuto125.github.io/sample/'
     // クリック=意図を計測（成功 callback は端末依存なので追わない）。北極星=シェア率。
     const canWebShare = 'share' in navigator
@@ -38,7 +40,9 @@ export function CompleteScreen() {
 
   return (
     <div className="screen complete screen-dark celebrate">
-      <div className="finish-emoji">🎉</div>
+      <div className="finish-emoji">
+        <Icon name="trophy" size={64} strokeWidth={1.75} />
+      </div>
       <div className="result-title">全章 完全制覇！</div>
       <p className="finish-lead">
         ドメインイベント・コマンド・アクター・ポリシー・外部システム・リードモデル、
@@ -49,7 +53,10 @@ export function CompleteScreen() {
       <div className="finish-stats">
         <div className="stat">
           <span className="stat-num">{stars}</span>
-          <span className="stat-lbl">/ {maxStars} ★</span>
+          <span className="stat-lbl">
+            / {maxStars}{' '}
+            <Star size={13} fill="currentColor" strokeWidth={2} className="lbl-star" aria-hidden />
+          </span>
         </div>
         <div className="stat">
           <span className="stat-num">{vocabCount}</span>
@@ -58,12 +65,14 @@ export function CompleteScreen() {
       </div>
 
       <button className="btn-primary" onClick={share}>
-        🌩️ 成果をシェアする
+        <Icon name="share" size={18} /> 成果をシェアする
       </button>
 
       <div className="next-chapter">
         <div className="nc-label">NEXT CHAPTER（予告）</div>
-        <div className="nc-title">第3章 — ⏰ サブスク課金ドメイン</div>
+        <div className="nc-title">
+          <Icon name="clock" size={18} /> 第3章 — サブスク課金ドメイン
+        </div>
         <div className="nc-def">
           時間で発火するポリシー（Scheduled Policy）が主役。
           「更新日が来たら課金する」をどう描く？ 集約をまたぐ

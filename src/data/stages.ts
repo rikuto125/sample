@@ -2,7 +2,7 @@ import type { Chapter, InvariantGateStage, Stage } from '../game/types'
 import { refVocab } from '../game/glossary'
 
 // ============================================================
-// 第1章 — 🍕 ピザデリバリーの注文業務（MVP: 4ステージ）
+// 第1章 — ピザデリバリーの注文業務（MVP: 4ステージ）
 //
 // 設計方針（DESIGN.md）:
 // - MODE1 は半順序制約で採点（唯一解を強制しない）
@@ -17,11 +17,11 @@ export const STAGES: Stage[] = [
     id: 'ch1-s1',
     mode: 'timeline',
     name: '注文から焼き上がりまで',
-    icon: '🕰️',
+    icon: 'clock',
     modeLabel: 'MODE 1 タイムライン',
     scenario:
-      '📜 お客さんがピザを注文して支払いを済ませた。店は調理を始め、やがてピザが焼き上がった。',
-    instruction: '⏱️ ドメインイベント（オレンジ・過去形）を時系列に並べよう',
+      'お客さんがピザを注文して支払いを済ませた。店は調理を始め、やがてピザが焼き上がった。',
+    instruction: 'ドメインイベント（オレンジ・過去形）を時系列に並べよう',
     events: [
       { id: 's1-ordered', kind: 'event', labelJa: '注文が確定した' },
       { id: 's1-paid', kind: 'event', labelJa: '支払いが完了した' },
@@ -47,11 +47,11 @@ export const STAGES: Stage[] = [
     id: 'ch1-s2',
     mode: 'timeline',
     name: '配達まで通しで',
-    icon: '🛵',
+    icon: 'scooter',
     modeLabel: 'MODE 1 タイムライン',
     scenario:
-      '📜 注文と支払いのあと、ピザが焼き上がると配達員が割り当てられ、無事に届けられた。ただし手札にはイベントでないカードが紛れている…！',
-    instruction: '⏱️ イベントだけを時系列に。イベントでないカードは置けない！',
+      '注文と支払いのあと、ピザが焼き上がると配達員が割り当てられ、無事に届けられた。ただし手札にはイベントでないカードが紛れている…！',
+    instruction: 'イベントだけを時系列に。イベントでないカードは置けない！',
     events: [
       { id: 's2-ordered', kind: 'event', labelJa: '注文が確定した' },
       { id: 's2-paid', kind: 'event', labelJa: '支払いが完了した' },
@@ -96,11 +96,11 @@ export const STAGES: Stage[] = [
     id: 'ch1-s3',
     mode: 'timeline',
     name: '配達が遅れた!?',
-    icon: '⚠️',
+    icon: 'alert',
     modeLabel: 'MODE 1 例外フロー',
     scenario:
-      '📜 ピザは焼き上がり配達員も決まった。しかし決済確認の遅れと配達遅延が発生！ 店は顧客に補償クーポンを発行し、ピザはようやく届いた。単純そうな業務の裏に、外部システムと例外が潜む。',
-    instruction: '⏱️ 例外フローも時系列に。イベントでないカードは弾こう',
+      'ピザは焼き上がり配達員も決まった。しかし決済確認の遅れと配達遅延が発生！ 店は顧客に補償クーポンを発行し、ピザはようやく届いた。単純そうな業務の裏に、外部システムと例外が潜む。',
+    instruction: '例外フローも時系列に。イベントでないカードは弾こう',
     events: [
       { id: 's3-baked', kind: 'event', labelJa: 'ピザが焼き上がった' },
       { id: 's3-assigned', kind: 'event', labelJa: '配達員が割り当てられた' },
@@ -149,12 +149,12 @@ export const STAGES: Stage[] = [
     id: 'ch1-s4',
     mode: 'trigger',
     name: '誰がトリガー？ そして因果の連鎖',
-    icon: '🔌',
+    icon: 'plug',
     modeLabel: 'MODE 2 トリガー接続',
     scenario:
-      '📜 コマンド（水色）は誰かが起こす。注文は顧客の意思、決済記録は外部システムのWebhook。そして「焼き上がった」という"事実"が、ポリシー（紫）を通じて次のコマンドを自動で呼ぶ——これがEventStormingの本丸だ。',
+      'コマンド（水色）は誰かが起こす。注文は顧客の意思、決済記録は外部システムのWebhook。そして「焼き上がった」という"事実"が、ポリシー（紫）を通じて次のコマンドを自動で呼ぶ——これがEventStormingの本丸だ。',
     instruction:
-      '🔌 各コマンドに、それを起こすトリガーを1枚つなごう（Actor=黄 / Policy=紫 / External=ピンク）。孤立コマンド（起動経路の宙吊り）をゼロにせよ',
+      '各コマンドに、それを起こすトリガーを1枚つなごう（Actor=黄 / Policy=紫 / External=ピンク）。孤立コマンド（起動経路の宙吊り）をゼロにせよ',
     vocab: { id: 'v-policy', ...refVocab('policy') },
     commands: [
       { id: 's4-c-order', kind: 'command', labelJa: '注文を確定する' },
@@ -217,7 +217,7 @@ export const STAGES: Stage[] = [
   },
 
   // ============================================================
-  // 第2章 — ✅ タスク管理ドメイン（集約と不変条件）
+  // 第2章 — タスク管理ドメイン（集約と不変条件）
   //
   // 一次資料: 松岡『ドメイン駆動設計 サンプルコード&FAQ』
   //   - 7.2.2 Task.postpone: postponeCount >= MAX(3) で DomainException
@@ -230,10 +230,10 @@ export const STAGES: Stage[] = [
     id: 'ch2-s1',
     mode: 'invariant',
     name: '集約のしごと',
-    icon: '📦',
+    icon: 'box',
     modeLabel: 'MODE 3 不変条件ゲート',
     scenario:
-      '📜 タスク管理アプリ。「タスク」は集約— 不変条件を守る一貫性の境界だ。コマンドは必ず集約を通り、集約がルールに照らして発行可否を決める。',
+      'タスク管理アプリ。「タスク」は集約— 不変条件を守る一貫性の境界だ。コマンドは必ず集約を通り、集約がルールに照らして発行可否を決める。',
     instruction:
       '届いたコマンドは、今の集約の状態で不変条件を満たすか？ 満たすなら通し、破るなら弾く。',
     aggregateJa: 'タスク',
@@ -281,10 +281,10 @@ export const STAGES: Stage[] = [
     id: 'ch2-s2',
     mode: 'invariant',
     name: '延期は3回まで',
-    icon: '🚫',
+    icon: 'gate',
     modeLabel: 'MODE 3 不変条件ゲート',
     scenario:
-      '📜 タスクには「延期は最大3回まで」という不変条件がある。同じ「延期する」コマンドが届き続ける。集約の今の状態を見て、その都度どうなるか判断しよう。',
+      'タスクには「延期は最大3回まで」という不変条件がある。同じ「延期する」コマンドが届き続ける。集約の今の状態を見て、その都度どうなるか判断しよう。',
     instruction:
       '今の延期回数と不変条件を照らし合わせて、このコマンドを通すか弾くか決める。',
     aggregateJa: 'タスク',
@@ -341,10 +341,10 @@ export const STAGES: Stage[] = [
     id: 'ch2-s3',
     mode: 'invariant',
     name: '完了したら、もう動かせない',
-    icon: '🏁',
+    icon: 'finish',
     modeLabel: 'MODE 3 不変条件ゲート',
     scenario:
-      '📜 タスクには複数の不変条件がある。延期回数の上限に加え、状態遷移 UNDONE→DONE が起きると許されるコマンドが変わる。状態を追いながら総仕上げ。',
+      'タスクには複数の不変条件がある。延期回数の上限に加え、状態遷移 UNDONE→DONE が起きると許されるコマンドが変わる。状態を追いながら総仕上げ。',
     instruction:
       '今の状態（延期回数・完了したか）と不変条件を照らして、コマンドごとに通すか弾くか決める。',
     aggregateJa: 'タスク',
@@ -410,13 +410,13 @@ export const CHAPTERS: Chapter[] = [
   {
     id: 'ch1',
     title: '第1章 — ピザデリバリーの注文業務',
-    icon: '🍕',
+    icon: 'pizza',
     stageIds: ['ch1-s1', 'ch1-s2', 'ch1-s3', 'ch1-s4'],
   },
   {
     id: 'ch2',
     title: '第2章 — タスク管理ドメイン（集約と不変条件）',
-    icon: '✅',
+    icon: 'checklist',
     stageIds: ['ch2-s1', 'ch2-s2', 'ch2-s3'],
   },
 ]

@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef } from 'react'
 import { CARD_META } from '../game/cardMeta'
 import { track } from '../game/analytics'
+import { Icon } from './Icon'
 import type { GlossaryEntry } from '../game/types'
 
 export type DefVia = 'legend' | 'sticky' | 'inline'
@@ -68,8 +69,8 @@ export function DefinitionSheet({ entry, via, onClose }: DefinitionSheetProps) {
             }
           >
             {icon && (
-              <span className="def-pill-icon" aria-hidden>
-                {icon}
+              <span className="def-pill-icon">
+                <Icon name={icon} size={15} />
               </span>
             )}
             <span id={titleId} className="def-pill-label">
@@ -86,7 +87,7 @@ export function DefinitionSheet({ entry, via, onClose }: DefinitionSheetProps) {
             onClick={onClose}
             aria-label="閉じる"
           >
-            ×
+            <Icon name="close" size={20} />
           </button>
         </div>
         {/* 直感の足場は正式定義の「前」に置く。色は付けず淡色＋左ボーダーで
@@ -95,7 +96,7 @@ export function DefinitionSheet({ entry, via, onClose }: DefinitionSheetProps) {
         {entry.intuition && (
           <div className="def-intuition">
             <p className="def-intuition-hook">
-              👋 たとえるなら: {entry.intuition.hook}
+              <Icon name="wave" size={15} /> たとえるなら: {entry.intuition.hook}
             </p>
             <p className="def-intuition-same">{entry.intuition.same}</p>
           </div>
