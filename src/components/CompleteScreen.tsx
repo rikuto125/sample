@@ -4,6 +4,8 @@ import { useStore } from '../store'
 import { totalStars } from '../game/progress'
 import { track } from '../game/analytics'
 import { Icon } from './Icon'
+import { Mascot } from './Mascot'
+import { Confetti } from './Confetti'
 import { Star } from 'lucide-react'
 import { soundEngine as sound } from '../game/sound'
 
@@ -40,8 +42,12 @@ export function CompleteScreen() {
 
   return (
     <div className="screen complete screen-dark celebrate">
-      <div className="finish-emoji">
-        <Icon name="trophy" size={64} strokeWidth={1.75} />
+      <Confetti />
+      <div className="finish-celebrate">
+        <Mascot mood="cheer" size={96} className="finish-mascot" />
+        <div className="finish-emoji">
+          <Icon name="trophy" size={56} strokeWidth={1.75} />
+        </div>
       </div>
       <div className="result-title">全章 完全制覇！</div>
       <p className="finish-lead">
