@@ -32,7 +32,8 @@ export function DefinitionSheet({ entry, via, onClose }: DefinitionSheetProps) {
   // hasIntuition: 比喩あり用語の開封が完走/リトライ減に効くかの内訳分析用。
   useEffect(() => {
     track('vocab_opened', { term: entry.id, via, hasIntuition: !!entry.intuition })
-  }, [entry.id, via, entry.intuition])
+    // entry.intuition は entry.id で一意に決まる（GLOSSARY 由来）ため deps は id/via のみ
+  }, [entry.id, via])
 
   useEffect(() => {
     returnFocusRef.current = document.activeElement
@@ -57,7 +58,7 @@ export function DefinitionSheet({ entry, via, onClose }: DefinitionSheetProps) {
       <div
         className="def-sheet"
         role="dialog"
-        aria-modal="false"
+        aria-modal="true"
         aria-labelledby={titleId}
         aria-describedby={defId}
       >

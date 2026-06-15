@@ -109,16 +109,8 @@ export function TriggerMode({ stage, onCorrect, onMistake, onInfo }: Props) {
           {trayCards.map((t) => (
             <button
               key={t.id}
+              className={`tray-card ${selected?.id === t.id ? 'selected' : ''}`}
               onClick={() => setSelected(selected?.id === t.id ? null : t)}
-              style={{
-                background: 'none',
-                border:
-                  selected?.id === t.id
-                    ? '3px solid var(--accent)'
-                    : '3px solid transparent',
-                borderRadius: 'calc(var(--radius-sticky) + 3px)',
-                padding: 0,
-              }}
               aria-pressed={selected?.id === t.id}
               aria-label={`${CARD_META[t.kind].labelJa} ${t.labelJa} を選択`}
             >
