@@ -1,13 +1,20 @@
+import { useEffect } from 'react'
 import { STAGES } from '../data/stages'
 import { useStore } from '../store'
 import { totalStars } from '../game/progress'
 import { track } from '../game/analytics'
+import { soundEngine as sound } from '../game/sound'
 
 export function CompleteScreen() {
   const { state, dispatch } = useStore()
   const stars = totalStars(state.progress)
   const maxStars = STAGES.length * 3
   const vocabCount = state.progress.unlockedVocab.length
+
+  // 完走ファンファーレ（2秒以内）。celebrateFlash は CSS で1回。
+  useEffect(() => {
+    sound.play('fanfare')
+  }, [])
 
   function share() {
     const text = `StormQuest 全章クリア！ ピザデリバリーとタスク管理で EventStorming の記法（集約・不変条件まで）を ${vocabCount}語マスター・${stars}/${maxStars}★ 🌩️`
@@ -30,7 +37,7 @@ export function CompleteScreen() {
   }
 
   return (
-    <div className="screen complete screen-dark">
+    <div className="screen complete screen-dark celebrate">
       <div className="finish-emoji">🎉</div>
       <div className="result-title">全章 完全制覇！</div>
       <p className="finish-lead">

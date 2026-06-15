@@ -4,6 +4,7 @@ import { checkTriggers, isValidLink } from '../game/engine'
 import { CARD_META } from '../game/cardMeta'
 import { Sticky } from './Sticky'
 import { shuffle } from '../game/shuffle'
+import { soundEngine as sound } from '../game/sound'
 
 interface Props {
   stage: TriggerStage
@@ -25,6 +26,7 @@ export function TriggerMode({ stage, onCorrect, onMistake, onInfo }: Props) {
   const [mistakes, setMistakes] = useState(0)
   const [usedHint, setUsedHint] = useState(false)
   const [showHint, setShowHint] = useState(false)
+  const [justLinked, setJustLinked] = useState<string | null>(null)
 
   const triggerById = useMemo(
     () => new Map(stage.triggers.map((t) => [t.id, t])),
@@ -39,6 +41,10 @@ export function TriggerMode({ stage, onCorrect, onMistake, onInfo }: Props) {
     if (isValidLink(stage, commandId, selected.id)) {
       setLinks((l) => ({ ...l, [commandId]: selected.id }))
       setSelected(null)
+      sound.play('snap')
+      // MODE2 接続演出（赤破線→緑実線+✓）を 250ms 当てる
+      setJustLinked(commandId)
+      window.setTimeout(() => setJustLinked(null), 260)
     } else {
       setMistakes((m) => m + 1)
       onMistake(
@@ -69,7 +75,7 @@ export function TriggerMode({ stage, onCorrect, onMistake, onInfo }: Props) {
           return (
             <div key={cmd.id} className="command-row">
               <button
-                className={`trigger-slot ${linked ? 'filled' : 'empty'} ${selected ? 'active' : ''}`}
+                className={`trigger-slot ${linked ? 'filled' : 'empty'} ${selected ? 'active' : ''} ${justLinked === cmd.id ? 'just-linked' : ''}`}
                 onClick={() => connect(cmd.id)}
                 aria-label={
                   linked

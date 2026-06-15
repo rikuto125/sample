@@ -26,6 +26,9 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run build
+        env:
+          # 公開値（サイトコード）。Repository Variables 経由。未設定なら no-op build。
+          VITE_GOATCOUNTER_CODE: ${{ vars.GOATCOUNTER_CODE }}
       - uses: actions/upload-pages-artifact@v3
         with:
           path: ./dist

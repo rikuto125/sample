@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { STAGES, chapterOf, isChapterLastStage } from '../data/stages'
 import { useStore } from '../store'
 import { CARD_META } from '../game/cardMeta'
 import { track } from '../game/analytics'
+import { soundEngine as sound } from '../game/sound'
 
 export function ResultScreen() {
   const { state, dispatch } = useStore()
@@ -11,6 +12,11 @@ export function ResultScreen() {
   const isLast = state.stageIdx >= STAGES.length - 1
   const [showMore, setShowMore] = useState(false)
   const m = CARD_META[stage.vocab.kind]
+
+  // 星獲得音（カチッ×星数）。視覚等価物は ★表示テキスト自体（§6.5）。
+  useEffect(() => {
+    sound.playStars(stars)
+  }, [stars])
 
   // 章末（ただし全体の最終ステージでない）なら章クリア帯を出す。
   // 章は CardKind でないので記法色は使わず、章アイコン＋中立色で表す。
@@ -21,8 +27,12 @@ export function ResultScreen() {
     <div className="screen result screen-dark">
       <div className="result-title">STAGE CLEAR!</div>
       <div className="stars-big" aria-label={`${stars}つ星`}>
-        {'★'.repeat(stars)}
-        <span className="dim">{'★'.repeat(3 - stars)}</span>
+        {Array.from({ length: stars }, (_, i) => (
+          <span key={i} className="star-pop" style={{ animationDelay: `${i * 90}ms` }} aria-hidden>
+            ★
+          </span>
+        ))}
+        <span className="dim" aria-hidden>{'★'.repeat(3 - stars)}</span>
       </div>
       <div className="result-sub">
         {stars === 3 && 'ノーミス！ 完璧な理解です。'}
