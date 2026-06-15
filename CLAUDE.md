@@ -49,6 +49,7 @@ design/          # デザイン・ゲーミフィケーション設計
 - ステージは「コンポーネント」でなく「データ」。ステージ追加 = データ追加で動くこと（エンジンを書き換えない）。
 - ステージデータを足したら、必ず妥当性検証テスト（validLinks の参照先実在チェック等）が緑であることを確認。
 - 用語の定義は `CONTEXT.md`（正）→ `src/game/glossary.ts`（コード内の写し）→ stages の `VocabEntry` の順で更新する。`VocabEntry.def` は手書きせず `refVocab()` で GLOSSARY から引く（二重管理を作らない）。
+- 個人ワーク（サンドボックス）モードは**採点系の別系統**（ADR 0002）。`src/game/sandbox*` / `notation.ts` / `Sandbox*.tsx` は `engine.ts`・`progress.ts` を import しない（`sandbox.test.ts` の境界テストで保証）。色は必ず `CARD_META[kind]` 由来（色選択 UI を作らない）。永続化は別キー `stormquest.sandbox`、成果物は version 不一致でも破棄しない。
 
 ## テスト
 

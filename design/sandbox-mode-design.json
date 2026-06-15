@@ -1,0 +1,150 @@
+{
+  "plan": {
+    "conceptName": "Personal Sandbox Mode（個人ワーク / ワークショップモード）— 採点なし・1人用の自由制作ツール。学習ゲームとは別系統で、CARD_META/Sticky/dnd-kit を再利用しつつ engine.ts(採点) には一切触れない。",
+    "mvpScope": "【MVP = 1人用で価値が出る最小形】「自分の実務ドメインのイベントを入力 → タイムラインに自由配置 → JSON で持ち出す」までを1人で完結させる。これだけで「ぽちぽち入れると EventStorming のタイムライン成果物が出来上がる」という要望の核を満たす。\n\nMVP に含めるもの:\n1. ホームに「サンドボックス」入口を追加（学習ゲームと並立、採点とは別系統）。\n2. ワーク一覧 / 新規作成（タイトル＋ドメイン説明の言語化）/ 削除。複数ワークを localStorage に保存・再開。\n3. 単一キャンバス（2D 自由配置, dnd-kit の別 DndContext）。種別セレクタ（7種=CardKind）でカード作成 → 色/アイコン/ラベルは CARD_META から自動確定（ユーザーは色を選べない＝記法の正確さを構造的に担保）。\n4. カードの追加 / ラベル編集 / 削除 / ドラッグ移動 / 自動保存（debounce 600ms）。\n5. 時制ヒント（過去形/現在形）— 入力欄の placeholder と補助テキスト、純粋関数 detectTense による「警告のみ・強制しない」助言。\n6. JSON エクスポート（Blob download, サーバー不要）。これが MVP の「持ち出し」。\n7. 完成（draft-complete）画面で「1人ワークの限界＝次は実ワークショップで認識合わせを」を明示（DESIGN.md §1 正直な境界の継承）。\n\nMVP に含めないもの（拡張へ）: コマンド/ポリシー等の「接続線」UI、ホットスポット注釈、集約候補マーク、PNG/SVG 画像出力、共有 URL、Supabase、自動集約推定。\n※ ただし MVP でも 7種すべてのカードは作成・配置できる（色当てクイズに堕さないため種別は最初から全部出す）。「接続(links)」の編集だけが拡張。",
+    "dataModel": "【学習ゲーム型(Card/Stage/Progress)とは完全分離。新ファイル src/game/sandboxTypes.ts に隔離】\n\nSandboxCard（Sticky に渡せるよう Card と構造互換。ただし game 専用フィールド isDistractor/reason/vocab は持たない）:\n  interface SandboxCard {\n    id: string            // 'sc-<rand>'\n    kind: CardKind        // 既存 CardKind を再利用（7種）。色はここから CARD_META で確定\n    labelJa: string       // ユーザー自由入力\n    labelEn?: string\n    x: number; y: number  // キャンバス上の絶対座標（2D 自由配置）\n  }\n\nSandboxWork（1つの EventStorming 成果物）:\n  type SandboxStatus = 'in-progress' | 'draft-complete'\n  interface SandboxWork {\n    id: string                 // 'work-<timestamp>'\n    title: string              // 例「注文フロー」\n    domainDescription: string  // 対象範囲・粒度の言語化（EventStorming の必須儀式）\n    cards: SandboxCard[]\n    notes?: string             // 自由記述\n    status: SandboxStatus\n    createdAt: number\n    updatedAt: number\n    // 拡張用に予約（MVP では空配列固定・UI 露出なし）:\n    links?: Array<{ id: string; fromCardId: string; toCardId: string }>\n    hotspots?: Array<{ id: string; cardIds: string[]; note: string }>\n    aggregates?: Array<{ id: string; name: string; cardIds: string[] }>\n  }\n\n【localStorage スキーマ（progress.ts の流儀を踏襲・別キー）】\n  KEY = 'stormquest.sandbox'（学習ゲームの 'stormquest.progress' とは別キー）\n  SANDBOX_VERSION = 1\n  interface SandboxStore {\n    version: 1\n    works: Record<string, SandboxWork>  // id -> work\n    lastOpenedId: string | null\n  }\n  読み込み時 version 不一致 or 形不正 → 空にリセット（握りつぶし）。save は try/catch で握りつぶし。\n\n【エクスポート JSON 形（人間可読・再インポート可能・バージョン埋め込み）】\n  { schema: 'stormquest.sandbox.work', version: 1, work: SandboxWork }\n  ファイル名: stormquest-work-<title-slug>-<YYYYMMDD>.json",
+    "storeAndPersistence": "【store.tsx を拡張。学習ゲーム進捗と直交させる（gameProgress に一切触れない）】\n\nScreen 拡張: 既存 'onboarding'|'home'|'play'|'result'|'complete' に 'sandboxHub'|'sandboxEditor' を追加。\n\nAppState 拡張: 既存 { screen, stageIdx, lastStars, progress } に sandbox 用の最小フィールドを足す:\n  sandbox: { works: Record<string, SandboxWork>; lastOpenedId: string | null }\n  activeWorkId: string | null\nStoreProvider 初期化で loadSandbox() を呼んで sandbox を初期化（loadProgress と並列）。\n\nAction 追加（reducer は副作用なしを維持）:\n  | { type: 'goSandboxHub' }\n  | { type: 'createWork'; work: SandboxWork }\n  | { type: 'openWork'; workId: string }\n  | { type: 'deleteWork'; workId: string }\n  | { type: 'updateWork'; work: SandboxWork }   // カード追加/編集/移動/notes/status をまとめて\n\n永続化ヘルパ（commitClear と同じパターン。コンポーネントから呼んで dispatch する）:\n  commitSandbox(state, work): 次の SandboxStore を作り saveSandbox() し、新 sandbox を返す。\n  → reducer 内で localStorage を触らない（テスト可能性・既存方針の維持）。\n\n重要: gameProgress と sandbox は別オブジェクト・別 localStorage キー。学習ゲームの reducer ケース(clearStage 等)は一切変更しない。AppBar の累計スター表示も従来どおり gameProgress のみ参照。",
+    "steps": [
+      {
+        "order": 1,
+        "file": "/Users/iwairikuto/Desktop/設計企画/game企画/stormquest/docs/adr/0002-sandbox-mode-scope.md",
+        "change": "ADR 新規作成。DESIGN.md §5『作らないもの』の『レベルエディタ/協働モード』とのスコープ衝突を解消。決定=『個人ワーク用サンドボックス(=1人の自由制作ツール)を作る。これはレベルエディタ(ゲームステージ生成)でも協働モードでもない。採点 engine とは別系統』。根拠=ユーザー明示依頼＋DESIGN.md §1 正直な境界の精神と整合。Consequences に『localStorage のみ(Supabase 保留)』『記法の正確さは CARD_META 構造で担保』を明記。後戻り不可3決定(§2)には抵触しないことを確認。"
+      },
+      {
+        "order": 2,
+        "file": "/Users/iwairikuto/Desktop/設計企画/game企画/stormquest/DESIGN.md",
+        "change": "§5 を更新。『作らないもの』から論点を切り出し、新セクション §5.1『個人サンドボックスモード(別系統・採点なし)』を追加。『協働モード/レベルエディタは依然作らない。サンドボックスは1人用の自由制作で両者と異なる』と区別を明記。ADR 0002 へリンク。"
+      },
+      {
+        "order": 3,
+        "file": "/Users/iwairikuto/Desktop/設計企画/game企画/stormquest/CLAUDE.md",
+        "change": "『サンドボックスモード』ガイドラインを追記: (1)engine.ts(採点)を呼ばない別系統、(2)色/アイコン/ラベルは必ず CARD_META 由来でハードコード禁止、(3)SandboxCard と Card を混ぜない、(4)localStorage キーは 'stormquest.sandbox' で gameProgress と分離。"
+      },
+      {
+        "order": 4,
+        "file": "/Users/iwairikuto/Desktop/設計企画/game企画/stormquest/src/game/sandboxTypes.ts",
+        "change": "新規。SandboxCard / SandboxWork / SandboxStatus / SandboxStore を定義(dataModel 節の通り)。CardKind は ./types から import 再利用。game 専用フィールドは持たせない。links/hotspots/aggregates は拡張予約として optional 定義のみ。"
+      },
+      {
+        "order": 5,
+        "file": "/Users/iwairikuto/Desktop/設計企画/game企画/stormquest/src/game/sandbox.ts",
+        "change": "新規。永続化＋純粋操作。loadSandbox()/saveSandbox()/resetSandbox()(progress.ts と同型, KEY='stormquest.sandbox', VERSION=1, 壊れたら握りつぶしリセット)。createWork(title, domainDescription): SandboxWork。addCard/updateCard/removeCard/moveCard(work, ...): 新 work を返す純粋関数(updatedAt 更新)。upsertWork(store, work)/deleteWork(store, id)。exportWorkJson(work): string。slugify(title)。すべて純粋関数で UI 非依存。"
+      },
+      {
+        "order": 6,
+        "file": "/Users/iwairikuto/Desktop/設計企画/game企画/stormquest/src/game/notation.ts",
+        "change": "新規。記法の正確さ助言(純粋関数, 採点ではなく advisory)。detectTense(text): 'past'|'present'|'uncertain'(日本語語尾の簡易正規表現: した/された/ている→past, する/だ/である→present)。kindHint(kind): { tenseLabel, placeholder, helper } を CARD_META 概念に沿って返す(event=過去形/command=現在形/policy='〜したら〜する' 等)。analyzeWork(work): { tenseWarnings: {cardId,message}[] } で『event なのに現在形』等を警告として返す(強制しない)。"
+      },
+      {
+        "order": 7,
+        "file": "/Users/iwairikuto/Desktop/設計企画/game企画/stormquest/src/store.tsx",
+        "change": "Screen に 'sandboxHub'|'sandboxEditor' 追加。AppState に sandbox/activeWorkId 追加。StoreProvider で loadSandbox() 初期化。Action(goSandboxHub/createWork/openWork/deleteWork/updateWork)と reducer ケース追加(副作用なし)。commitSandbox(state, work) ヘルパ追加(saveSandbox を呼び新 sandbox を返す, commitClear と同型)。既存の学習ゲーム関連 case/型は一切変更しない。"
+      },
+      {
+        "order": 8,
+        "file": "/Users/iwairikuto/Desktop/設計企画/game企画/stormquest/src/App.tsx",
+        "change": "Router の switch に case 'sandboxHub' → <SandboxHubScreen/>, case 'sandboxEditor' → <SandboxEditorScreen/> を追加。AppBar の onHome 判定に 'sandboxHub' も含める(戻る挙動)。import を追加。累計スター pill は従来どおり gameProgress 参照のまま。"
+      },
+      {
+        "order": 9,
+        "file": "/Users/iwairikuto/Desktop/設計企画/game企画/stormquest/src/components/HomeScreen.tsx",
+        "change": "hero 直下に『サンドボックス』への CTA セクションを1つ追加(学習パスは温存)。『実務のドメインイベントを自分で入力して EventStorming を1人で組み立てる』説明＋ボタン onClick → dispatch({type:'goSandboxHub'})。学習ゲームが主・サンドボックスは副の視覚的優先度を保つ(初見の混乱回避)。"
+      },
+      {
+        "order": 10,
+        "file": "/Users/iwairikuto/Desktop/設計企画/game企画/stormquest/src/components/SandboxHubScreen.tsx",
+        "change": "新規。ワーク一覧(state.sandbox.works を updatedAt 降順)。各行: title / domainDescription / カード数 / 更新日時 / 開く / 削除。『+ 新規ワーク』→ タイトルとドメイン説明を入力する SandboxNewWorkModal(同ファイル内 or 小コンポーネント)→ dispatch createWork(createWork())＋openWork。空状態の説明文を表示。"
+      },
+      {
+        "order": 11,
+        "file": "/Users/iwairikuto/Desktop/設計企画/game企画/stormquest/src/components/SandboxEditorScreen.tsx",
+        "change": "新規。activeWorkId から work を取得。3 領域: (左)SandboxPalette=種別作成, (中)SandboxCanvas=2D配置, (右)サマリ(カード数/種別内訳/時制警告 from analyzeWork)＋notes 編集＋『JSON で書き出す』＋『完成にする(status=draft-complete)』。すべての変更は commitSandbox→dispatch updateWork。自動保存(debounce 600ms, useRef + setTimeout)で『保存しました ✓』を Toast 表示。status=draft-complete 時は SandboxComplete の文面(誠実な境界＋次は実ワークショップ)を表示。"
+      },
+      {
+        "order": 12,
+        "file": "/Users/iwairikuto/Desktop/設計企画/game企画/stormquest/src/components/SandboxCanvas.tsx",
+        "change": "新規。dnd-kit を『別 DndContext』で使用(SortableContext は使わない=2D自由配置)。useDraggable で各カードを移動, onDragEnd で delta を x/y に加算→moveCard。3 sensor(Pointer distance5 / Touch delay120 tolerance6 / Keyboard)は TimelineMode と同設定で touch/a11y を確保。各カードは既存 Sticky を再利用(SandboxCard を Card 互換で渡す)。カード dbl-click/長押しでラベル inline 編集＋削除ボタン。グリッド背景。"
+      },
+      {
+        "order": 13,
+        "file": "/Users/iwairikuto/Desktop/設計企画/game企画/stormquest/src/components/SandboxPalette.tsx",
+        "change": "新規。7種(CardKind)の作成ボタン群。各ボタンは CARD_META[kind] の色/Icon/labelJa で描画(ハードコード禁止)。クリック→種別選択状態でラベル入力フォーム表示。kindHint(kind)(notation.ts)で placeholder('注文が確定した'等)と時制 helper を表示。確定で addCard(work, {kind,labelJa,x,y初期位置})。"
+      },
+      {
+        "order": 14,
+        "file": "/Users/iwairikuto/Desktop/設計企画/game企画/stormquest/src/components/Icon.tsx",
+        "change": "REGISTRY に不足トークンがあれば追加(例: download, folder/library, trash)。lucide-react を Icon 経由でのみ解決する方針を維持(他コンポーネントで lucide を直 import しない)。既存トークンで足りる場合は変更不要。"
+      },
+      {
+        "order": 15,
+        "file": "/Users/iwairikuto/Desktop/設計企画/game企画/stormquest/src/styles/screens.css",
+        "change": "サンドボックス用クラスを追加(.sandbox-hub / .sandbox-editor / .sandbox-canvas(position:relative; grid 背景) / .sandbox-card(position:absolute; left/top) / .sandbox-palette)。既存 .sticky スタイルはそのまま流用。色定義は CSS に書かず CARD_META 由来の inline style に委ねる。"
+      },
+      {
+        "order": 16,
+        "file": "/Users/iwairikuto/Desktop/設計企画/game企画/stormquest/src/game/sandbox.test.ts",
+        "change": "新規(Vitest)。createWork/addCard/updateCard/removeCard/moveCard が新オブジェクトを返し updatedAt が進むこと, save→load roundtrip でデータロスなし, version 不一致で空リセット, exportWorkJson が schema/version を含み再パース可能なこと, slugify を表形式テスト。localStorage は jsdom(既存 test/setup.ts)。"
+      },
+      {
+        "order": 17,
+        "file": "/Users/iwairikuto/Desktop/設計企画/game企画/stormquest/src/game/notation.test.ts",
+        "change": "新規(Vitest)。detectTense を表形式テスト(『配達が完了した』→past, 『配達する』→present, 名詞のみ→uncertain)。analyzeWork が event×現在形を warning に拾い command×現在形は拾わないこと。advisory であって correct/incorrect を返さないこと(API 形状)を固定。"
+      }
+    ],
+    "exportMethod": "【MVP = JSON ダウンロードのみ(新規 npm 依存ゼロ)】\nexportWorkJson(work)(sandbox.ts, 純粋関数)が { schema:'stormquest.sandbox.work', version:1, work } を JSON.stringify。SandboxEditorScreen の『JSON で書き出す』ボタンで Blob + URL.createObjectURL + a[download] でダウンロード(ファイル名 stormquest-work-<slug>-<YYYYMMDD>.json)。サーバー不要・GitHub Pages public で完結。再インポートは拡張で受ける(schema/version 検証して works に追加)。\n\n【拡張(MVP後)】\n- 画像出力: まず自前 SVG レンダラ(キャンバスの x/y/色/ラベルを <rect>+<text> で描く純粋関数)で .svg ダウンロード。新依存ゼロで実装可。PNG 化が要れば html2canvas を後追い検討。\n- 共有 URL: work JSON を圧縮(pako 等)→ base64 → URL fragment(#/view/...)。読み取り専用。URL 長制限のため小規模ワーク限定、JSON/SVG を主とする。\n理由: 既存 package.json に html2canvas/pako は無く、依存追加はバンドル肥大とビルド破壊リスク。MVP は『持ち出せる』を満たす最小の JSON に絞る。",
+    "correctnessGuard": "記法の正確さは『構造的担保』と『助言的担保』の二段で守る。\n(1) 構造的(強制): カード作成時にユーザーは CardKind(7種)を選ぶだけで、色/アイコン/ラベルは必ず CARD_META[kind] から導出。色を独自指定する UI を一切作らない＝『オレンジのコマンド』のような記法破壊が型レベルで不可能。Sticky を再利用するので学習ゲームと完全に同一の見た目になり、実ワークショップの標準色と一致する(DESIGN.md §4 厳密一致)。CARD_META が唯一の正である規約を CLAUDE.md に明記。\n(2) 助言的(非強制): notation.ts の detectTense / analyzeWork で時制を判定し、event なのに現在形などを『警告』として右サマリと入力 helper に表示。ただし強制修正しない(EventStorming に唯一解はない＝採点なしの精神, DESIGN.md §3 ②学習の誠実さ)。Palette の placeholder は kindHint で『注文が確定した(過去形)』『注文を確定する(現在形)』と例示し、入力前から正しい時制へ誘導。\n(3) 採点 engine 非接触: engine.ts(checkTimeline/scoreStars 等)も Stars/Progress も一切呼ばない。サンドボックスは『正解/不正解』を出さない別系統であることをコードと型(SandboxCard≠Card)で担保。",
+    "testStrategy": "既存方針(判定/データロジックは src/game に純粋関数→Vitest で厚く, UI は最小)を踏襲。\n- Unit(必須, Vitest): sandbox.test.ts = CRUD 純粋関数のイミュータビリティ＋updatedAt 進行, save/load roundtrip, version 不一致リセット, exportWorkJson の schema/version 埋め込みと再パース, slugify。notation.test.ts = detectTense 表形式, analyzeWork が advisory(warning のみ・correct を返さない)であること。\n- 回帰(必須): 既存の engine.test.ts / stages.test.ts / progress 系が緑のまま(=学習ゲーム別系統が壊れていない)を CI で確認。npm test 一発に含める。\n- 型分離テスト: SandboxCard と Card を混在させると型エラーになる(engine 関数に SandboxCard を渡せない)ことを tsc -b で担保。\n- E2E(最小, 拡張で Playwright): 『新規ワーク→カード3枚追加→ドラッグ移動→JSON ダウンロード』の1本のみ(CI 高コストのため本数を絞る既存方針)。MVP では unit + 手動確認で可、E2E は拡張フェーズへ。\n- localStorage: jsdom(既存 test/setup.ts)を利用。グローバル状態共有を避け各テストで clear。",
+    "deferredToLater": [
+      "コマンド/ポリシー/イベント間の『接続線(links)』編集 UI(因果連鎖の可視化)。MVP は links を予約フィールドとして持つのみ。",
+      "ホットスポット(Pain Point)注釈と集約候補マーク(hotspots/aggregates も予約フィールドのみ)。",
+      "画像エクスポート(自前 SVG レンダラ → 必要なら html2canvas で PNG)。",
+      "共有 URL(base64-in-fragment, 読み取り専用)。pako 等の圧縮依存込み。",
+      "JSON 再インポート(schema/version 検証して works に取り込み)。",
+      "Supabase によるサーバー保存・複数端末同期(現状保留)。",
+      "タイムライン自動整列・集約候補の自動推定などの解析補助(対話を奪わない範囲で慎重に)。",
+      "EventStorming 典型パターン(注文/配送/承認フロー)のテンプレート/複製。",
+      "localStorage 容量逼迫時の『古いワーク削除を促す』UI と容量見積りの実測。"
+    ],
+    "openQuestions": [
+      "ホーム画面の入口を『タブ切替』にするか『CTA セクション追加』にするか。本設計は初見の混乱を避け学習ゲームを主に保つため CTA セクション案を採用したが、サンドボックス利用が増えたらタブ/別ルート(/sandbox)化を再検討。",
+      "2D 自由配置(useDraggable)で MVP を出すか、まずは TimelineMode 流の1D縦並べ替え(SortableContext 流用)で出すか。要望の『タイムラインが出来上がる』には1Dの方が学習ゲーム資産の流用度が高く実装が軽い。2D は表現自由度が高いが座標系を新規に持つ。MVP は実装容易性を取って1D寄せも選択肢(要 grill)。",
+      "時制の警告対象をどこまで広げるか(command の現在形チェック, policy の『〜したら〜する』形チェック等)。過剰警告は鬱陶しいので MVP は event の過去形のみに絞るのが無難。",
+      "エクスポートの第一形を JSON だけにするか、SVG 画像も MVP に含めるか。『完成させたい/共有したい』欲求には画像が効くが、自前 SVG レンダラのコストとの兼ね合い。",
+      "localStorage 1ワークあたりの想定上限(カード数)と容量警告の閾値。実測して DESIGN.md に明記する必要。",
+      "SandboxComplete を別画面にするか SandboxEditorScreen 内の状態表示にするか(本設計は後者=editor 内 status 表示でファイル数を抑制)。"
+    ]
+  },
+  "verdictViolations": [
+    {
+      "principle": "記法の正確さ — CARD_META が唯一の正 / SandboxCard と Card の型分離主張が虚偽",
+      "issue": "design の testStrategy は『SandboxCard と Card を混在させると型エラーになる(engine 関数に SandboxCard を渡せない)ことを tsc -b で担保』と書くが、これは成立しない。(a) engine.ts(checkTimeline/checkTriggers/applyCommand) はそもそも引数に Card を取らない — TimelineStage / TriggerStage / AggregateState を取る(engine.ts:33,76,141 で確認)。よって『engine に SandboxCard を渡せない』のは型分離の成果ではなく単に引数型が違うだけで、ガードになっていない。(b) 逆に SandboxCard を {id,kind,labelJa,labelEn,x,y} で定義すると、Card(id/kind/labelJa 必須 + labelEn?/vocab?/isDistractor?/reason? 任意, types.ts:46-58)の必須フィールドを全て満たす超集合になるため、TypeScript の構造的部分型により SandboxCard 値は Sticky の card:Card プロップ(Sticky.tsx:6,35)へ素通りで代入可能=コンパイルが通る。つまり『Sticky に Card 互換で渡せる』(これは事実)と『型で混在を弾ける』(これは虚偽)が同時に主張されており矛盾。型での担保を謳いながら実際には型が守ってくれない。",
+      "fix": "型分離テストの文言を撤回し、現実的なガードに置換する: (1) SandboxCard を Card のサブタイプにしない — 例えば kind を保持しつつ『game 専用フィールドを持たない』ことを comment でなく型で示すには、Sticky を直接使わず src/components/SandboxSticky を1枚噛ませ、CARD_META[kind] から色/icon/labelJa を引く描画だけを共有する(Sticky の見た目 CSS .sticky を流用)。(2) engine 非接触は『型』でなく『import 境界』で守る: notation.test.ts か lint で src/game/sandbox*.ts / src/components/Sandbox*.tsx が engine.ts / progress.ts を import しないことを検査する(grep ベースの単体テストで十分、stages.test.ts の妥当性検証と同じ流儀)。これなら『別系統』を機械的に保証できる。"
+    },
+    {
+      "principle": "記法の正確さ — 時制/種別(7種のうち時制を持つのは event/command/policy のみ)",
+      "issue": "kindHint(kind) が『7種すべてに tenseLabel/placeholder/helper を返す』設計だが、DESIGN.md §4 と CONTEXT.md の記法表では時制を持つのは event(過去形)/command(現在形)/policy(〜したら〜する)の3種だけ。actor=人・役割、externalSystem=管理外システム、readModel=見る画面、aggregate=集約 は時制概念を持たない。これらに『時制ラベル』や時制 helper を出すと、実ワークショップの標準と食い違う誤った記法知識(『アクターは現在形』等)を植え付ける。DESIGN.md §3『①ドメインの正確さ > ②学習の誠実さ』の最上位に抵触。",
+      "fix": "kindHint の戻り値で tense 系フィールドを optional にし、event/command/policy のみに付与。actor/externalSystem/readModel/aggregate は時制 helper を出さず、placeholder を『役割名(例:顧客)』『外部サービス名(例:決済GW)』『参照する画面(例:注文一覧)』のように種別の性質で出す。analyzeWork の時制警告も openQuestions が示唆する通り MVP は event の過去形違反のみに絞り(policy の『〜したら〜する』形チェックすら過剰)、command/その他は警告対象外と明記。CONTEXT.md の記法表を唯一の正として kindHint のテーブルを派生させる(二重管理しない)。"
+    },
+    {
+      "principle": "ユビキタス言語 — JA↔EN は CONTEXT.md が正、用語は先にそこへ",
+      "issue": "プロジェクト規約(CLAUDE.md『ユビキタス言語は CONTEXT.md が正。新しい用語は先にここへ』、ルート CLAUDE.md『日本語名と英語名のペアが決まる前にコード/型名を決めない』)に反し、設計は DESIGN.md・CLAUDE.md・ADR は更新するが、新規ドメイン語(個人サンドボックスモード=Personal Sandbox Mode、ワーク=Work、サンドボックスカード=Sandbox Card、ドメイン説明=Domain Description、ドラフト完成=Draft Complete 等)を CONTEXT.md に登録する手順が steps に存在しない。型名(SandboxCard/SandboxWork/SandboxStatus)を先に確定させており、命名儀式の順序が逆。",
+      "fix": "steps の先頭(order 0)に『CONTEXT.md に §ゲーム内概念 or 新セクションを足し、サンドボックス関連 JA↔EN 対訳を登録』を追加。少なくとも Work/Sandbox Mode/Domain Description/Draft Complete の対訳を確定してから sandboxTypes.ts を書く。glossary.ts は学習ゲームの記法定義の写しなので汚さない(サンドボックス語は別概念=登録不要)ことも明記し、CONTEXT.md→型 の順序を steps 上で固定する。"
+    },
+    {
+      "principle": "localStorage スキーマのバージョン管理 — ユーザー成果物の喪失リスク",
+      "issue": "設計の永続化は progress.ts の流儀(version 不一致 or 形不正 → 空にリセット, 握りつぶし)をそのまま踏襲(steps 5)。ゲーム進捗(再取得可能な星)ならこの『壊れたら捨てる』戦略は妥当だが、サンドボックスが保持するのは『ユーザーが実務ドメインを言語化した成果物(SandboxWork)』であり、再生成不能な一次データである。将来 SANDBOX_VERSION を 1→2 に上げた瞬間、ユーザーの全ワークが無言で消える。これは DESIGN.md §1『誇大広告しない/誠実』の精神に反し、データ保護の観点でも不可逆事故。version 比較が『不一致なら捨てる』しかなく、移行(migrate)経路も退避(バックアップ/エクスポート促し)も無い。",
+      "fix": "(1) 読み込み時 version 不一致でも即時破棄せず、(a) 既知の旧 version は migrate 関数で変換、(b) 未知 version は『リセットせず読み取り専用で保持し、自動エクスポートを促す』フォールバックにする。最低限、resetSandbox の前に export 用 JSON を別キー(stormquest.sandbox.backup)に退避する。(2) エクスポート JSON に version を埋める設計(既にある)を活かし、破棄前に自動ダウンロードを試みる導線を SandboxHub に置く。(3) ADR 0002 の Consequences に『サンドボックスは再生成不能な一次データのため、progress と異なり破棄でなく移行/退避を既定にする』を明記し、game progress との戦略差を意図的な決定として残す。"
+    },
+    {
+      "principle": "スコープ整合(DESIGN.md §5)とユーザー依頼によるスコープ拡大の妥当性",
+      "issue": "DESIGN.md §5『作らないもの』に『協働モード』『レベルエディタ』が明記され、CLAUDE.md は §2 後戻り不可3決定と優先順位の死守を要求する。本設計はサンドボックス(1人用自由制作)を『協働でもエディタでもない別系統』として ADR 0002 で切り出す方針自体は妥当だが、ADR の Consequences で『記法の正確さは CARD_META 構造で担保』と書く一方、実際には上記 violation 1(型分離が効かない)と violation 2(7種への時制付与)で構造的担保が穴あきになっており、ADR の主張が実装と乖離する。また DESIGN.md §1 が掲げる『1人ゲームでは協働の対話=EventStorming 最大の学びは扱えない』という正直な境界を、サンドボックスでも誠実に明示する設計(draft-complete 画面の文面)は良いが、これが editor 内 status 表示(openQuestions 最終項)に縮退すると埋没し、境界の明示が弱まる懸念。",
+      "fix": "(1) ADR 0002 の Consequences を violation 1/2/4 の修正後の事実に合わせて書く(『型でなく import 境界テストで engine 非接触を担保』『時制助言は3種のみ』『成果物は移行/退避』)。ADR は実装が裏切れない約束だけを書く。(2) draft-complete の『1人ワークの限界=次は実ワークショップで認識合わせを』は editor 内の小さな status 表示に埋めず、最低限モーダル or 独立した完成パネルで明示し、DESIGN.md §1 の誠実な境界をサンドボックスでも一級市民として継承する。(3) DESIGN.md §5.1 に『協働/エディタは依然作らない。サンドボックスは1人用で両者と異なる』の一文に加え、『サンドボックスは EventStorming の協働の学びを代替しない』を明記。"
+    },
+    {
+      "principle": "EventStorming 協働の限界の誠実な明示 / 採点 engine 非接触の機械的保証",
+      "issue": "correctnessGuard (3)『採点 engine 非接触: engine.ts も Stars/Progress も一切呼ばない』は方針として正しいが、これを保証する仕組みが『コードと型(SandboxCard≠Card)で担保』とされ、violation 1 の通りその型担保が成立しない。結果、将来 SandboxEditor で『時制警告の数で星を出す』『正解率を出す』等の採点回帰が混入しても、機械的に検知できない。協働の限界の明示(draft-complete 文面)も人手の文言依存で、回帰テストが無い。",
+      "fix": "(1) engine/progress 非 import の境界テスト(violation 1 の fix と同じ)を必須化し、testStrategy の『型分離テスト』を『import 境界テスト』に置換。(2) notation.test.ts で analyzeWork が correct/incorrect/score/stars いずれのキーも返さない(API 形状に採点語が無い)ことをスナップショット的に固定する記述は良い案なので維持。(3) 協働の限界明示は文言が消えると検知できないため、draft-complete 文面に既知の文言キーを持たせ、SandboxEditor のレンダリングテスト(最小1本)で『実ワークショップ』への接続文言が表示されることを assert する。"
+    }
+  ],
+  "verdictNotes": "全体方針(採点 engine と完全分離した別系統、別 localStorage キー、CARD_META を唯一の正として色をユーザーに選ばせない構造的担保、純粋関数を src/game に寄せ Vitest で厚く、reducer 副作用なし維持、commitClear 同型の commitSandbox)は、このコードベースの既存の良い規律(progress.ts の version 付き握りつぶし、store.tsx の『reducer は永続化しない』方針、Sticky の CARD_META 由来描画、Icon レジストリ唯一解決点)を正しく踏襲しており、設計の骨格は承認に値する。承認を保留する理由は 6 つの violation のうち特に重い 3 点: (1) 型による engine/Card 分離が TypeScript の構造的部分型のため実際には効かないのに『型で担保』と虚偽の主張をしている(import 境界テストに置換せよ)、(2) 7 種すべてに時制ヒントを付ける設計が actor/external/readModel/aggregate に存在しない時制概念を捏造し DESIGN.md §3①ドメインの正確さに抵触する、(3) ユーザーの再生成不能な一次成果物(SandboxWork)に対し progress と同じ『version 不一致なら全消し』を適用するのはデータ喪失事故であり、移行/退避を既定にすべき。加えて CONTEXT.md への用語登録手順の欠落(命名儀式の順序逆転)を steps order 0 で補えば、プロジェクト規約と整合する。事実確認した重要点: package.json は React 18.3(rules の React 19 記述とは別物=このゲームは 18 系)、依存は @dnd-kit/{core,sortable,utilities}+lucide-react+react のみで html2canvas/pako は不在(設計の『新依存ゼロ』前提は正しい)、vitest は jsdom + globals + src/test/setup.ts で構成済(sandbox.test.ts/notation.test.ts はこの設定で動く)、engine.ts は Card を引数に取らず Stage 型を取る(型分離の前提が崩れる根拠)。上記 6 修正を反映すれば承認可能。\"}"
+}

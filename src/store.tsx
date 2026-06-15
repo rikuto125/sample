@@ -7,6 +7,8 @@ import {
 } from 'react'
 import type { Progress, Stars } from './game/types'
 import { loadProgress, recordClear, saveProgress } from './game/progress'
+import type { SandboxStore } from './game/sandboxTypes'
+import { loadSandbox, saveSandbox } from './game/sandbox'
 // recordClear は commitClear 経由でのみ使う
 
 export type Screen =
@@ -15,6 +17,8 @@ export type Screen =
   | 'play'
   | 'result'
   | 'complete'
+  | 'sandboxHub'
+  | 'sandboxEditor'
 
 export interface AppState {
   screen: Screen
@@ -23,6 +27,10 @@ export interface AppState {
   /** 直近クリアの星（リザルト表示用） */
   lastStars: Stars | null
   progress: Progress
+  // ---- サンドボックス（個人ワーク）。採点系とは直交した別系統 ----
+  sandbox: SandboxStore
+  /** 編集中のワーク id */
+  activeWorkId: string | null
 }
 
 type Action =
@@ -32,6 +40,10 @@ type Action =
   | { type: 'clearStage'; stars: Stars; progress: Progress }
   | { type: 'nextStage' }
   | { type: 'goComplete' }
+  | { type: 'goSandboxHub' }
+  // sandbox は commitSandbox で永続化済みの store を受け取る（reducer は副作用なし）
+  | { type: 'setSandbox'; sandbox: SandboxStore }
+  | { type: 'openWork'; sandbox: SandboxStore; workId: string }
 
 function reducer(state: AppState, action: Action): AppState {
   switch (action.type) {
@@ -53,6 +65,17 @@ function reducer(state: AppState, action: Action): AppState {
       return { ...state, screen: 'play', stageIdx: state.stageIdx + 1, lastStars: null }
     case 'goComplete':
       return { ...state, screen: 'complete', lastStars: null }
+    case 'goSandboxHub':
+      return { ...state, screen: 'sandboxHub' }
+    case 'setSandbox':
+      return { ...state, sandbox: action.sandbox }
+    case 'openWork':
+      return {
+        ...state,
+        sandbox: action.sandbox,
+        activeWorkId: action.workId,
+        screen: 'sandboxEditor',
+      }
     default:
       return state
   }
@@ -71,6 +94,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     stageIdx: 0,
     lastStars: null,
     progress,
+    sandbox: loadSandbox(),
+    activeWorkId: null,
   })
 
   return (
@@ -95,5 +120,11 @@ export function commitClear(
 ): Progress {
   const next = recordClear(state.progress, stageId, stars, vocabId)
   saveProgress(next)
+  return next
+}
+
+/** サンドボックスの新 store を永続化して返す高水準ヘルパ（reducer は副作用なし） */
+export function commitSandbox(next: SandboxStore): SandboxStore {
+  saveSandbox(next)
   return next
 }

@@ -52,6 +52,21 @@ export function HomeScreen() {
         </p>
       </div>
 
+      {/* 個人ワーク（サンドボックス）への入口。学習パスとは別系統 */}
+      <button
+        className="sandbox-cta btn-reset"
+        onClick={() => dispatch({ type: 'goSandboxHub' })}
+      >
+        <Icon name="scenario" size={20} className="sandbox-cta-icon" />
+        <span className="sandbox-cta-text">
+          <span className="sandbox-cta-title">個人ワーク（実務で使う）</span>
+          <span className="sandbox-cta-sub">
+            自分のドメインのイベントを入力して 1人で EventStorming を組み立てる
+          </span>
+        </span>
+        <Icon name="next" size={18} />
+      </button>
+
       {CHAPTERS.map((chapter, ci) => {
         const stages = chapter.stageIds
           .map((id) => STAGES.find((s) => s.id === id))

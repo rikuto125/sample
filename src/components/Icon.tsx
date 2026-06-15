@@ -38,6 +38,9 @@ import {
   Sparkles,
   Trophy,
   Share2,
+  Download,
+  FolderOpen,
+  Trash2,
   CircleHelp,
   type LucideIcon,
   type LucideProps,
@@ -100,6 +103,9 @@ const REGISTRY = {
   wave: Hand,
   plus: Plus,
   share: Share2,
+  download: Download,
+  folder: FolderOpen,
+  trash: Trash2,
 } satisfies Record<string, LucideIcon>
 
 export type IconName = keyof typeof REGISTRY

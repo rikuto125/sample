@@ -7,6 +7,8 @@ import { PlayScreen } from './components/PlayScreen'
 import { ResultScreen } from './components/ResultScreen'
 import { CompleteScreen } from './components/CompleteScreen'
 import { Onboarding } from './components/Onboarding'
+import { SandboxHubScreen } from './components/SandboxHubScreen'
+import { SandboxEditorScreen } from './components/SandboxEditorScreen'
 import { Icon } from './components/Icon'
 
 function SoundToggle() {
@@ -69,6 +71,10 @@ function Router() {
       return <ResultScreen />
     case 'complete':
       return <CompleteScreen />
+    case 'sandboxHub':
+      return <SandboxHubScreen />
+    case 'sandboxEditor':
+      return <SandboxEditorScreen />
   }
 }
 
