@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { StoreProvider, useStore } from './store'
 import { totalStars } from './game/progress'
 import { soundEngine } from './game/sound'
+import { haptics } from './game/haptics'
 import { HomeScreen } from './components/HomeScreen'
 import { PlayScreen } from './components/PlayScreen'
 import { ResultScreen } from './components/ResultScreen'
@@ -29,6 +30,29 @@ function SoundToggle() {
   )
 }
 
+function VibeToggle() {
+  // 振動非対応端末（iOS Safari 等）ではトグル自体を出さない。
+  const [supported] = useState(() => haptics.isSupported())
+  const [enabled, setEnabled] = useState(() => haptics.isEnabled())
+  if (!supported) return null
+  function toggle() {
+    const next = !enabled
+    haptics.setEnabled(next)
+    if (next) haptics.fire('snap') // ON にした瞬間に手応えを返す
+    setEnabled(next)
+  }
+  return (
+    <button
+      className="snd-toggle"
+      onClick={toggle}
+      aria-pressed={enabled}
+      aria-label={enabled ? 'バイブオン（タップでオフ）' : 'バイブオフ（タップでオン）'}
+    >
+      {enabled ? '📳' : '📴'}
+    </button>
+  )
+}
+
 function AppBar() {
   const { state, dispatch } = useStore()
   const onHome = state.screen === 'home' || state.screen === 'onboarding'
@@ -46,6 +70,7 @@ function AppBar() {
       <span className="title">
         <span className="app">StormQuest</span>
       </span>
+      <VibeToggle />
       <SoundToggle />
       <span className="stars-pill" aria-label={`累計 ${totalStars(state.progress)} スター`}>
         ★ {totalStars(state.progress)}

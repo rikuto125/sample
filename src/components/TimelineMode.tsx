@@ -21,6 +21,7 @@ import { checkTimeline } from '../game/engine'
 import { Sticky } from './Sticky'
 import { shuffle } from '../game/shuffle'
 import { soundEngine as sound } from '../game/sound'
+import { haptics } from '../game/haptics'
 
 interface Props {
   stage: TimelineStage
@@ -92,6 +93,7 @@ export function TimelineMode({ stage, onCorrect, onMistake }: Props) {
       return
     }
     sound.play('snap')
+    haptics.fire('snap')
     setHand((h) => h.filter((c) => c.id !== card.id))
     setPlaced((p) => [...p, card])
     setJustPlaced(card.id)
