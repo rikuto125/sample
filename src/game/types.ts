@@ -17,6 +17,26 @@ export interface VocabEntry {
   def: string
 }
 
+/**
+ * 用語の定義（プレイ中に引く軽量ヒント用）。
+ * 定義文の一次資料は CONTEXT.md。GLOSSARY はそのコード内の写し。
+ * kind を持つのは記法7種だけ。集約不変条件・状態遷移など CardKind を
+ * 持たない補助用語は kind 省略・icon を自前で持つ。
+ */
+export interface GlossaryEntry {
+  id: string
+  ja: string
+  en: string
+  /** 定義本文（CONTEXT.md の第1文。句点で終わる） */
+  def: string
+  /** 記法カードに対応する用語のみ。色＋アイコンは CARD_META から引く */
+  kind?: CardKind
+  /** kind を持たない補助用語のアイコン（CONTEXT.md 準拠。色は付けない） */
+  icon?: string
+  /** 章注記・混同防止の注記など（def 本文には含めない補足） */
+  note?: string
+}
+
 export interface Card {
   id: string
   kind: CardKind
@@ -52,6 +72,11 @@ interface StageBase {
   /** 獲得できる主要語彙 */
   vocab: VocabEntry
   reality: RealityNote
+  /**
+   * scenario / instruction 本文で点線下線にして定義を引けるようにする用語 id の許可リスト。
+   * 未指定なら、そのステージで使う記法種別を既定対象にする（過剰下線を避ける）。
+   */
+  glossaryRefs?: string[]
 }
 
 /**
@@ -91,7 +116,70 @@ export interface TriggerStage extends StageBase {
   chain?: ChainSpec
 }
 
-export type Stage = TimelineStage | TriggerStage
+// ---- MODE3: 不変条件ゲート（第2章 / 集約と不変条件）----
+
+/**
+ * 集約の状態。宣言的に持つ（例: { postponeCount: 0, done: 0 }）。
+ * DDD書籍7.2.2 の Task（postponeCount / status）に対応。
+ */
+export type AggregateState = Record<string, number>
+
+/**
+ * 集約が受けるコマンドの定義。
+ * ガード（不変条件）を満たせばイベントを発行し、状態を更新する。破れば拒否。
+ * DDD書籍7.2.2: postpone は postponeCount >= MAX(3) で DomainException。
+ */
+export interface AggregateCommand {
+  id: string
+  /** コマンド名（「タスクを延期する」など） */
+  labelJa: string
+  /** 成功時に発行されるドメインイベント名（過去形） */
+  emitsEventJa: string
+  /**
+   * 不変条件（ガード）。すべて満たせばコマンドは通る。
+   * lt/lte/gte/eq で「状態キーのしきい値」を宣言的に表す。
+   */
+  guards: InvariantGuard[]
+  /** 成功時の状態への効果（キーごとの増分）。例: { postponeCount: +1 } */
+  effects: Record<string, number>
+  /** ガード違反時にプレイヤーへ示す理由 */
+  rejectReason: string
+}
+
+export type InvariantGuard =
+  | { key: string; op: 'lt'; value: number } // state[key] < value
+  | { key: string; op: 'lte'; value: number }
+  | { key: string; op: 'gte'; value: number }
+  | { key: string; op: 'eq'; value: number }
+
+/**
+ * MODE3: 不変条件ゲート。
+ * プレイヤーは「今この集約状態で、このコマンドは通るか？」を判断し、
+ * 通ると判断したコマンドだけを集約に通す。集約の不変条件を体験的に学ぶ。
+ */
+export interface InvariantGateStage extends StageBase {
+  mode: 'invariant'
+  /** 集約名（淡黄📦カードで表示） */
+  aggregateJa: string
+  /** 集約の初期状態 */
+  initialState: AggregateState
+  /** プレイヤーが順に判断するコマンド列（同じコマンドが状態違いで複数回出る） */
+  steps: AggregateCommand[]
+  /** 集約が獲得させる語彙（集約） */
+  aggregateVocab: VocabEntry
+}
+
+export type Stage = TimelineStage | TriggerStage | InvariantGateStage
+
+// ---- 章（chapter）構成 ----
+
+export interface Chapter {
+  id: string
+  title: string
+  icon: string
+  /** この章に属するステージ id の並び */
+  stageIds: string[]
+}
 
 // ---- 採点 ----
 

@@ -1,4 +1,7 @@
 import type {
+  AggregateCommand,
+  AggregateState,
+  InvariantGuard,
   OrderConstraint,
   ScoreInput,
   Stars,
@@ -102,4 +105,68 @@ export function scoreStars({ mistakes, usedHint }: ScoreInput): Stars {
   if (mistakes === 0 && !usedHint) return 3
   if (!usedHint) return 2
   return 1
+}
+
+// ============================================================
+// MODE3 不変条件ゲート（第2章 / 集約と不変条件）
+//
+// DDD書籍7.2.2: 集約は不変条件（postponeCount >= 3 で拒否 等）を守る。
+// 「コマンドが現在の集約状態で通るか」を判定し、通れば状態を更新する。
+// ============================================================
+
+/** 単一ガード（不変条件述語）の評価 */
+function evalGuard(state: AggregateState, guard: InvariantGuard): boolean {
+  const v = state[guard.key] ?? 0
+  switch (guard.op) {
+    case 'lt':
+      return v < guard.value
+    case 'lte':
+      return v <= guard.value
+    case 'gte':
+      return v >= guard.value
+    case 'eq':
+      return v === guard.value
+  }
+}
+
+/**
+ * 現在状態でコマンドが集約を通るか（全ガードを満たすか）。
+ * これが「集約が不変条件を守る」の核。状態次第で同じコマンドが通ったり拒否されたりする。
+ */
+export function commandPasses(
+  state: AggregateState,
+  command: AggregateCommand,
+): boolean {
+  return command.guards.every((g) => evalGuard(state, g))
+}
+
+/**
+ * コマンドを集約に適用して次の状態を返す（純粋）。
+ * 通る場合のみ effects を反映。通らない場合は状態を変えない（イベント未発行）。
+ */
+export function applyCommand(
+  state: AggregateState,
+  command: AggregateCommand,
+): { passed: boolean; next: AggregateState } {
+  if (!commandPasses(state, command)) {
+    return { passed: false, next: state }
+  }
+  const next: AggregateState = { ...state }
+  for (const [key, delta] of Object.entries(command.effects)) {
+    next[key] = (next[key] ?? 0) + delta
+  }
+  return { passed: true, next }
+}
+
+/**
+ * プレイヤーの「このコマンドを通す/拒否する」という判断が正しいかを評価する。
+ * decision=true（通すと判断）が commandPasses と一致すれば正解。
+ */
+export function judgeGateDecision(
+  state: AggregateState,
+  command: AggregateCommand,
+  decision: boolean,
+): { correct: boolean; passes: boolean } {
+  const passes = commandPasses(state, command)
+  return { correct: decision === passes, passes }
 }
