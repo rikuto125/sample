@@ -507,3 +507,73 @@
 .onboard-tip { font-size: var(--fs-body-sm); }
 .onboard-tip .tip-i { vertical-align: -0.2em; }
 .onboarding .skip { max-width: 200px; margin-top: var(--space-lg); }
+
+/* ===== 個人ワーク（サンドボックス）===== */
+.sandbox-cta {
+  display: flex; align-items: center; gap: var(--space-sm);
+  width: 100%; text-align: left;
+  background: var(--accent); color: #fff;
+  border-radius: var(--radius-md); padding: var(--space-md);
+  margin-bottom: var(--space-lg); cursor: pointer;
+  box-shadow: var(--shadow-card);
+}
+.sandbox-cta:active { transform: translateY(1px); }
+.sandbox-cta-text { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.sandbox-cta-title { font-weight: 800; }
+.sandbox-cta-sub { font-size: var(--fs-caption); opacity: .9; }
+
+.sandbox-hub, .sandbox-editor { padding: var(--space-md); }
+.sandbox-hub-title, .sandbox-editor-title { display: flex; align-items: center; gap: 8px; font-weight: 800; }
+.sandbox-hub-lead { color: var(--ink-muted); font-size: var(--fs-body-sm); margin: var(--space-xs) 0 var(--space-md); }
+.sandbox-new { display: flex; flex-direction: column; gap: var(--space-xs); margin-bottom: var(--space-lg); }
+.sandbox-input {
+  font: inherit; padding: 10px 12px; border: 1px solid var(--line);
+  border-radius: var(--radius-sm); background: #fff; color: var(--ink); width: 100%;
+}
+.sandbox-input:focus-visible { outline: 2px solid var(--accent); border-color: var(--accent); }
+
+.sandbox-work-list { list-style: none; display: flex; flex-direction: column; gap: var(--space-xs); }
+.sandbox-work-row { display: flex; align-items: stretch; gap: var(--space-xs); }
+.sandbox-work-open {
+  flex: 1; text-align: left; background: var(--surface-sunken);
+  border-radius: var(--radius-sm); padding: var(--space-sm) var(--space-md); cursor: pointer;
+  display: flex; flex-direction: column; gap: 2px;
+}
+.sandbox-work-name { font-weight: 800; }
+.sandbox-work-meta { font-size: var(--fs-caption); color: var(--ink-muted); }
+.sandbox-work-del { padding: 0 var(--space-sm); color: var(--ink-muted); cursor: pointer; }
+.sandbox-hub-note { margin-top: var(--space-lg); }
+
+.sandbox-editor-head { display: flex; align-items: center; gap: var(--space-sm); margin-bottom: var(--space-md); }
+.sandbox-editor-head .sandbox-editor-title { flex: 1; font-size: var(--fs-heading); }
+.sandbox-editor-body { display: flex; flex-direction: column; gap: var(--space-md); }
+
+.sandbox-palette { display: flex; flex-direction: column; gap: var(--space-sm); }
+.sandbox-palette-kinds { display: flex; flex-wrap: wrap; gap: 6px; }
+.sandbox-kind-btn {
+  display: inline-flex; align-items: center; gap: 4px; border: 2px solid transparent;
+  border-radius: var(--radius-pill); padding: 4px 10px; font-size: var(--fs-caption);
+  font-weight: 800; cursor: pointer;
+}
+.sandbox-kind-btn.selected { border-color: var(--ink); }
+.sandbox-input-label { display: flex; flex-direction: column; gap: 4px; font-size: var(--fs-caption); font-weight: 800; }
+.sandbox-input-kind { display: inline-flex; align-items: center; gap: 4px; }
+.sandbox-advice { font-size: var(--fs-caption); color: var(--ink-muted); }
+.sandbox-add { align-self: flex-start; }
+
+.sandbox-canvas {
+  position: relative; min-height: 320px; background: var(--surface-sunken);
+  background-image: radial-gradient(var(--line) 1px, transparent 1px);
+  background-size: 20px 20px;
+  border: 1px solid var(--line); border-radius: var(--radius-md); overflow: hidden;
+}
+.sandbox-canvas-empty { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: var(--ink-muted); font-size: var(--fs-body-sm); text-align: center; padding: var(--space-md); }
+.sandbox-card-del {
+  position: absolute; top: -8px; right: -8px; width: 20px; height: 20px;
+  border-radius: 50%; background: var(--ink); color: #fff; cursor: pointer;
+  font-size: 13px; line-height: 1; display: flex; align-items: center; justify-content: center;
+}
+.sandbox-summary { background: var(--surface-sunken); border-radius: var(--radius-md); padding: var(--space-sm) var(--space-md); }
+.sandbox-summary h3 { font-size: var(--fs-body-sm); margin-bottom: var(--space-xs); }
+.sandbox-summary ul { list-style: none; display: flex; flex-direction: column; gap: 2px; font-size: var(--fs-body-sm); font-weight: 700; }
+.sandbox-summary li { display: flex; align-items: center; gap: 4px; }
