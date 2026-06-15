@@ -1,6 +1,7 @@
 import { STAGES } from '../data/stages'
 import { useStore } from '../store'
 import { totalStars } from '../game/progress'
+import { track } from '../game/analytics'
 
 export function CompleteScreen() {
   const { state, dispatch } = useStore()
@@ -11,7 +12,14 @@ export function CompleteScreen() {
   function share() {
     const text = `StormQuest 全章クリア！ ピザデリバリーとタスク管理で EventStorming の記法（集約・不変条件まで）を ${vocabCount}語マスター・${stars}/${maxStars}★ 🌩️`
     const url = 'https://rikuto125.github.io/sample/'
-    if (navigator.share) {
+    // クリック=意図を計測（成功 callback は端末依存なので追わない）。北極星=シェア率。
+    const canWebShare = 'share' in navigator
+    track('share_clicked', {
+      method: canWebShare ? 'webshare' : 'twitter',
+      stars,
+      vocabCount,
+    })
+    if (canWebShare) {
       navigator.share({ title: 'StormQuest', text, url }).catch(() => {})
     } else {
       const intent = `https://twitter.com/intent/tweet?text=${encodeURIComponent(

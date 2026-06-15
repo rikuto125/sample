@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { STAGES } from '../data/stages'
+import { STAGES, chapterOf, isChapterLastStage } from '../data/stages'
 import { useStore } from '../store'
 import { CARD_META } from '../game/cardMeta'
 import { track } from '../game/analytics'
@@ -11,6 +11,11 @@ export function ResultScreen() {
   const isLast = state.stageIdx >= STAGES.length - 1
   const [showMore, setShowMore] = useState(false)
   const m = CARD_META[stage.vocab.kind]
+
+  // 章末（ただし全体の最終ステージでない）なら章クリア帯を出す。
+  // 章は CardKind でないので記法色は使わず、章アイコン＋中立色で表す。
+  const chapter = chapterOf(stage.id)
+  const showChapterClear = isChapterLastStage(stage.id) && !isLast && chapter != null
 
   return (
     <div className="screen result screen-dark">
@@ -24,6 +29,15 @@ export function ResultScreen() {
         {stars === 2 && 'クリア！ ノーミスで★3を狙えます。'}
         {stars === 1 && 'クリア！ ヒントなしで★2以上に挑戦しよう。'}
       </div>
+
+      {showChapterClear && (
+        <div className="chapter-clear" role="status">
+          <span className="cc-badge" aria-hidden>
+            {chapter.icon}
+          </span>
+          <span className="cc-text">{chapter.title} クリア！</span>
+        </div>
+      )}
 
       <div className="vocab-card" style={{ background: m.color, color: m.ink }}>
         <div className="vocab-new" aria-hidden>
@@ -72,11 +86,14 @@ export function ResultScreen() {
           className="btn-primary"
           onClick={() => {
             const nextIdx = state.stageIdx + 1
+            if (showChapterClear) {
+              track('chapter_complete', { chapter: chapter.id, stars })
+            }
             track('stage_start', { stage: STAGES[nextIdx].id })
             dispatch({ type: 'nextStage' })
           }}
         >
-          つぎのステージへ ▶
+          {showChapterClear ? 'つぎの章へ ▶' : 'つぎのステージへ ▶'}
         </button>
       )}
       <button

@@ -425,3 +425,14 @@ export const CHAPTERS: Chapter[] = [
 export function isInvariantStage(s: Stage): s is InvariantGateStage {
   return s.mode === 'invariant'
 }
+
+/** stageId から所属章を逆引きする（純粋関数）。 */
+export function chapterOf(stageId: string): Chapter | undefined {
+  return CHAPTERS.find((c) => c.stageIds.includes(stageId))
+}
+
+/** その stage が所属章の最後のステージか（章クリア判定に使う・純粋関数）。 */
+export function isChapterLastStage(stageId: string): boolean {
+  const c = chapterOf(stageId)
+  return c != null && c.stageIds[c.stageIds.length - 1] === stageId
+}

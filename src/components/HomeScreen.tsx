@@ -2,6 +2,7 @@ import { STAGES, CHAPTERS } from '../data/stages'
 import { useStore } from '../store'
 import { clearedCount } from '../game/progress'
 import { CARD_META } from '../game/cardMeta'
+import { track } from '../game/analytics'
 import type { Stage } from '../game/types'
 
 export function HomeScreen() {
@@ -16,6 +17,12 @@ export function HomeScreen() {
 
   // stageId -> 全体での index（ロック判定に使う）
   const indexOf = new Map(STAGES.map((s, i) => [s.id, i]))
+
+  // 着手を計測（完走率の分母）。stageIdx が変わる着手で1回発火。
+  function startStage(idx: number) {
+    track('stage_start', { stage: STAGES[idx].id })
+    dispatch({ type: 'startStage', idx })
+  }
 
   return (
     <div className="screen home">
@@ -37,6 +44,9 @@ export function HomeScreen() {
           .map((id) => STAGES.find((s) => s.id === id))
           .filter((s): s is Stage => s != null)
         const chapterDone = stages.every((s) => progress.stars[s.id] != null)
+        const chapterCleared = stages.filter(
+          (s) => progress.stars[s.id] != null,
+        ).length
         return (
           <section key={chapter.id} className="chapter">
             <h3 className={`chapter-title ${chapterDone ? 'done' : ''}`}>
@@ -44,6 +54,12 @@ export function HomeScreen() {
               {chapter.title}
               {chapterDone && <span className="chapter-badge">クリア</span>}
             </h3>
+            <div
+              className="progressbar chapter-progress"
+              aria-label={`章の進捗 ${chapterCleared} / ${stages.length}`}
+            >
+              <i style={{ width: `${(chapterCleared / stages.length) * 100}%` }} />
+            </div>
             <div className="stage-map">
               {stages.map((s) => {
                 const i = indexOf.get(s.id)!
@@ -54,7 +70,7 @@ export function HomeScreen() {
                     key={s.id}
                     className={`stage-node ${stars != null ? 'cleared' : ''} ${locked ? 'locked' : ''}`}
                     disabled={locked}
-                    onClick={() => dispatch({ type: 'startStage', idx: i })}
+                    onClick={() => startStage(i)}
                   >
                     <span className="node-icon">{s.icon}</span>
                     <span className="node-body">
@@ -76,10 +92,7 @@ export function HomeScreen() {
         )
       })}
 
-      <button
-        className="btn-primary"
-        onClick={() => dispatch({ type: 'startStage', idx: startIdx })}
-      >
+      <button className="btn-primary" onClick={() => startStage(startIdx)}>
         {done === 0 ? 'はじめる' : done >= total ? 'もう一度挑戦' : 'つづきから'}
       </button>
 

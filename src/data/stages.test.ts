@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest'
-import { STAGES, CHAPTERS } from './stages'
+import {
+  STAGES,
+  CHAPTERS,
+  chapterOf,
+  isChapterLastStage,
+} from './stages'
 import { applyCommand } from '../game/engine'
 
 // ステージデータの妥当性検証。ステージ追加時の事故を防ぐ。
@@ -101,6 +106,33 @@ describe('CHAPTERS データ整合性', () => {
     const inChapters = new Set(CHAPTERS.flatMap((c) => c.stageIds))
     for (const s of STAGES) {
       expect(inChapters.has(s.id)).toBe(true)
+    }
+  })
+})
+
+describe('chapterOf / isChapterLastStage', () => {
+  it('各ステージは所属章を逆引きできる', () => {
+    expect(chapterOf('ch1-s1')?.id).toBe('ch1')
+    expect(chapterOf('ch2-s2')?.id).toBe('ch2')
+    expect(chapterOf('ch2-s3')?.id).toBe('ch2')
+  })
+
+  it('存在しない id は undefined', () => {
+    expect(chapterOf('nope')).toBeUndefined()
+  })
+
+  it('章末ステージのみ true', () => {
+    expect(isChapterLastStage('ch1-s4')).toBe(true) // 第1章末
+    expect(isChapterLastStage('ch2-s3')).toBe(true) // 第2章末
+    expect(isChapterLastStage('ch1-s1')).toBe(false) // 章途中
+    expect(isChapterLastStage('ch2-s1')).toBe(false)
+    expect(isChapterLastStage('nope')).toBe(false)
+  })
+
+  it('全章の末尾 stageId が isChapterLastStage で true（データ駆動の網羅）', () => {
+    for (const c of CHAPTERS) {
+      const last = c.stageIds[c.stageIds.length - 1]
+      expect(isChapterLastStage(last), `${c.id} 末尾 ${last}`).toBe(true)
     }
   })
 })
