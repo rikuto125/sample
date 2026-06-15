@@ -76,12 +76,12 @@ export function CompleteScreen() {
       <div className="next-chapter">
         <div className="nc-label">NEXT CHAPTER（予告）</div>
         <div className="nc-title">
-          <Icon name="box" size={18} /> 第4章 — 在庫と注文（複数集約のトランザクション）
+          <Icon name="gate" size={18} /> 第7章 — 境界づけられたコンテキスト
         </div>
         <div className="nc-def">
-          「注文が確定したら在庫を引き当て、失敗したら取り消す」。
-          複数の集約にまたがる処理が途中で失敗したら？
-          <strong>補償</strong>と<strong>結果整合性</strong>の世界へ。
+          同じ「注文」でも、営業と配送では意味が違う。
+          複数のドメイン言語が出会う<strong>境界</strong>を、
+          コンテキストマップと<strong>翻訳層</strong>でどう繋ぐ？
         </div>
       </div>
 

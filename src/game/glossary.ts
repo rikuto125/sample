@@ -120,6 +120,83 @@ const ENTRIES: GlossaryEntry[] = [
     def: '集約をまたぐ整合性を「ドメインイベント」で確保する実装方法。ある集約がイベントを発行し、ポリシーがそれを拾って別の集約のコマンドを起こす。',
     note: 'ユースケースに整合性ロジックを散らすより、整合性がドメイン層に閉じて「どこから呼んでも崩れない」利点がある。',
   },
+
+  // ---- 第4章 補償トランザクション / Saga ----
+  {
+    id: 'stockAllocation',
+    ja: '在庫引き当て',
+    en: 'Stock Allocation',
+    icon: 'box',
+    def: '在庫集約が注文の事実に反応して在庫を確保すること。',
+  },
+  {
+    id: 'compensatingTransaction',
+    ja: '補償トランザクション',
+    en: 'Compensating Transaction',
+    icon: 'back',
+    def: '確定済みの事実を打ち消す「新しい事実（補償イベント）」を積むこと。',
+    note: '集約をまたいだロールバックは存在せず、確定した事実は消えない。補償で結果整合性を取る。',
+  },
+  {
+    id: 'eventualConsistency',
+    ja: '結果整合性',
+    en: 'Eventual Consistency',
+    icon: 'clock',
+    def: '複数集約を即時に強整合させず、イベントと（補償）ポリシーで「いずれ整う」ように整合を取ること。',
+    note: '第3章の集約整合性を「失敗時にどう保つか」へ拡張したもの。',
+  },
+  {
+    id: 'saga',
+    ja: 'Saga',
+    en: 'Saga',
+    icon: 'policy',
+    def: '複数集約・サービスをまたぐ長い処理を、失敗時に補償イベントで逆順に巻き戻すパターン。',
+    note: '業界一般語。本ゲームでは Event→補償Policy→補償Command の連鎖として表現する。',
+  },
+
+  // ---- 第5章 イベント粒度・時制の落とし穴（記法注記語）----
+  {
+    id: 'wrongTense',
+    ja: '時制の誤り',
+    en: 'Wrong Tense',
+    icon: 'alert',
+    def: '現在形（意図＝コマンド）を過去形（事実＝イベント）と取り違える Phase 2 の頻出ミス。',
+    note: '記法注記。現在形は command（水色）で示す。',
+  },
+  {
+    id: 'granularityDrift',
+    ja: '粒度のブレ',
+    en: 'Granularity Drift',
+    icon: 'alert',
+    def: 'ドメインイベントの粒度が粗すぎ・過細・テクニカルにブレること。',
+    note: '唯一の正解粒度を主張せず「業務として意味があるか」を問う（唯一解の嘘をつかない）。',
+  },
+  {
+    id: 'technicalEvent',
+    ja: 'テクニカルイベント',
+    en: 'Technical Event',
+    icon: 'alert',
+    def: 'DB操作やUIクリックなど実装・操作レベルの事象で、ドメインイベントではないもの。',
+    note: '業界標準カードではなくアンチパターンの呼称。',
+  },
+
+  // ---- 第6章 リードモデル / CQRS（軽量版）----
+  {
+    id: 'lightweightQueryModel',
+    ja: '軽量クエリモデル',
+    en: 'Lightweight Query Model',
+    icon: 'readModel',
+    def: '更新用モデル（集約）と分けて、複数集約・複数イベントの事実から導く参照専用モデル。',
+    note: 'DDD-FAQ §8.4 の呼称。イベントソーシングや厳密な CQRS は本ゲームの範囲外。',
+  },
+  {
+    id: 'cqrs',
+    ja: 'CQRS（軽量版）',
+    en: 'Command Query Responsibility Segregation',
+    icon: 'readModel',
+    def: '更新（コマンド→集約）と参照（イベント→リードモデル）を分ける考え方。',
+    note: '本ゲームは §8.4 の軽量クエリモデルの範囲のみ扱う。',
+  },
 ]
 
 /** 用語定義の単一ソース（id → entry）。ENTRIES から導出。 */
