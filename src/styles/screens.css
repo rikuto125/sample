@@ -544,6 +544,32 @@
 .sandbox-work-del { padding: 0 var(--space-sm); color: var(--ink-muted); cursor: pointer; }
 .sandbox-hub-note { margin-top: var(--space-lg); }
 
+/* 画面内の「戻る」チップ（一覧へ / ホーム）。appbar の丸ボタンとは別。
+   素のボタン枠だと盤面から浮くので、プロジェクトの 3D ピル意匠に合わせる
+   （--board 面 + --line 縁 + 沈む下縁 + 押下で沈む）。 */
+.screen .back {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 6px 14px 6px 10px;
+  background: var(--board);
+  border: 2px solid var(--line);
+  border-radius: var(--radius-pill);
+  color: var(--accent);
+  font-size: var(--fs-body-sm); font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 3px 0 var(--line);
+  transition: transform var(--motion-fast) var(--ease-out),
+    box-shadow var(--motion-fast) var(--ease-out), background var(--motion-fast);
+}
+.screen .back:hover { background: var(--surface-sunken); }
+.screen .back:active { transform: translateY(3px); box-shadow: 0 0 0 var(--line); }
+/* ダーク画面（オンボーディング等）の上では地と分離するため白寄せ */
+.screen-dark .back {
+  background: rgba(255, 255, 255, 0.1); border-color: rgba(255, 255, 255, 0.4);
+  color: rgba(255, 255, 255, 0.95); box-shadow: 0 3px 0 rgba(255, 255, 255, 0.16);
+}
+.screen-dark .back:hover { background: rgba(255, 255, 255, 0.16); }
+.screen-dark .back:active { box-shadow: 0 0 0 rgba(255, 255, 255, 0.16); }
+
 /* 狭幅で 戻る + タイトル + 書き出し が一行に収まらないと、flex がタイトル列を
    1文字幅まで潰して縦書きに崩れる。タイトルは min-width:0 + 省略、書き出しは
    折り返して次行へ落とす（戻るとタイトルは必ず先頭行に残す）。 */
@@ -583,7 +609,18 @@
   font-size: var(--fs-caption); color: var(--ink-muted);
   min-width: 3.2em; text-align: center; font-variant-numeric: tabular-nums;
 }
-.btn-sm { padding: 4px 10px; font-size: var(--fs-caption); }
+/* .btn-ghost / .btn-primary は幅 100% なので、コンパクトに使いたい箇所では
+   .btn-sm で auto 幅・小さめ padding に上書きする（お手本カードの操作など）。 */
+.btn-sm {
+  width: auto; margin: 0;
+  padding: 5px 12px; font-size: var(--fs-caption);
+}
+/* ツールバーの操作群は盤面のコントロール＝プロジェクトの 3D ピル意匠に合わせる。 */
+.sandbox-toolbar .btn-sm {
+  border-radius: var(--radius-pill);
+  box-shadow: 0 3px 0 var(--line);
+}
+.sandbox-toolbar .btn-sm:active { transform: translateY(3px); box-shadow: 0 0 0 var(--line); }
 .sandbox-viewport {
   position: relative; height: clamp(380px, 62vh, 720px);
   background: var(--surface-sunken);
