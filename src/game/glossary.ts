@@ -109,7 +109,7 @@ const ENTRIES: GlossaryEntry[] = [
     ja: '集約整合性',
     en: 'Cross-Aggregate Consistency',
     icon: 'box',
-    def: '複数の集約にまたがって守りたい整合性。1つの集約の出来事が、別の集約の状態を必ず引き起こす関係。',
+    def: '複数の集約にまたがって守りたい整合性。1つの集約の事実が、別の集約の状態を必ず引き起こす関係。',
     note: '単一集約の不変条件（第2章）が「1つの境界の中のルール」なのに対し、これは「境界をまたぐ整合性」。',
   },
   {
@@ -187,7 +187,7 @@ const ENTRIES: GlossaryEntry[] = [
     en: 'Lightweight Query Model',
     icon: 'readModel',
     def: '更新用モデル（集約）と分けて、複数集約・複数イベントの事実から導く参照専用モデル。',
-    note: 'DDD-FAQ §8.4 の呼称。イベントソーシングや厳密な CQRS は本ゲームの範囲外。',
+    note: 'イベントソーシングや厳密な CQRS は本ゲームの範囲外。',
   },
   {
     id: 'cqrs',
@@ -195,7 +195,7 @@ const ENTRIES: GlossaryEntry[] = [
     en: 'Command Query Responsibility Segregation',
     icon: 'readModel',
     def: '更新（コマンド→集約）と参照（イベント→リードモデル）を分ける考え方。',
-    note: '本ゲームは §8.4 の軽量クエリモデルの範囲のみ扱う。',
+    note: '本ゲームは軽量クエリモデルの範囲のみ扱う。',
   },
 ]
 

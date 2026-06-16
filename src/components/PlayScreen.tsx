@@ -113,7 +113,7 @@ export function PlayScreen() {
       <details className="stage-brief">
         <summary>
           <Icon name="scenario" size={16} className="brief-lead" />
-          この章の説明と記法
+          このステージの状況と記法
           <Icon name="more" size={16} className="brief-chev" />
         </summary>
         <div className="scenario">

@@ -41,7 +41,7 @@ export function HomeScreen() {
           <span className="app">StormQuest</span>
         </h1>
         <p className="hero-tag">
-          本では掴めなかった「色と文法」を、手を動かして15分で。
+          本では掴めなかった「色と文法」を、手を動かして。1ステージ数分のスキマ学習。
         </p>
         <div className="progressbar">
           <i style={{ width: `${(done / total) * 100}%` }} />

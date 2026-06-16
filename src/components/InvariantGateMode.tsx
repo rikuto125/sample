@@ -204,7 +204,7 @@ export function InvariantGateMode({
             setUsedHint(true)
           }}
         >
-          <Icon name="hint" size={18} /> ヒント（星が下がる）
+          <Icon name="hint" size={18} /> ヒント（星評価が下がります）
         </button>
         {showHint && (
           <p className="hint-text">
