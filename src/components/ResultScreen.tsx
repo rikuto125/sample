@@ -106,7 +106,7 @@ export function ResultScreen() {
             dispatch({ type: 'goComplete' })
           }}
         >
-          第1章クリア！ 完走画面へ <Icon name="trophy" size={18} />
+          全章クリア！ 完走画面へ <Icon name="trophy" size={18} />
         </button>
       ) : (
         <button
