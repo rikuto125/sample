@@ -11,6 +11,7 @@ type EventName =
   | 'game_complete'
   | 'vocab_opened'
   | 'hint_used'
+  | 'onboarding_step'
   | 'onboarding_complete'
   | 'chapter_complete'
   | 'share_clicked'

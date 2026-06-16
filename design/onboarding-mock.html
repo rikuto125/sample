@@ -1,0 +1,637 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>StormQuest — オンボーディング モック（mobile 390px）</title>
+<!--
+  StormQuest オンボーディング HTML/CSS モック（実装前のデザイン確認用・自己完結）
+
+  由来: design ワークフロー（ベンチマーク調査 → UI/UXデザイナー5人パネル → 統合 → 3審査官の敵対的検証）。
+  検証 fix-then-ship の修正をすべて織り込み済み:
+   1. ドメイン正確さ: 因果連鎖は Event→Policy→Command→Event（4ノード・ループが閉じる。CONTEXT.md L58）。
+   2. S3 は 390px で破綻しないよう縦積み（橙Event / 紫Policyスロット / 水色Command / 橙Event）。
+   3. 因果方向は動きに依存させず chainアイコン＋?→✓＋静的ラベルで冗長化。reduced-motion でも緑実線(.filled)が残る。
+   4. haptic は「任意の progressive enhancement（視覚snap+aria-liveで等価）」として注記。既存資産表記から除外。
+   5. 学習導線（点線下線・ⓘ）は 44px ヒット領域。
+   6. role=status aria-live=polite のアナウンサで配置/開示/連結を SR に等価通知。
+   7. コピーは万能感を弱め competence-entry に（「読めるようになる」→「色と文法の読み方がつかめる」）。
+
+  意匠は src/styles/tokens.css に厳密一致（色・余白・角丸・モーション）。
+  カード7色は CARD_META 由来（色を独自にズラさない）。三重冗長（色＋アイコン＋ラベル）。
+  これは「図（派生物）」。実装の正は React コンポーネント側。ここで意匠合意を取ってから .tsx 化する。
+-->
+<style>
+  /* ===== tokens.css 抜粋（厳密一致。サンプルはこれに従う） ===== */
+  :root {
+    --es-event: #ffb74d;   --es-event-ink: #3a2600;
+    --es-command: #64b5f6; --es-command-ink: #06243a;
+    --es-policy: #ce93d8;  --es-policy-ink: #2e0f33;
+
+    --bg-outer: #1c1712;
+    --paper: #f7f1e6;
+    --board: #fcf8f0;
+    --scenario-bg: #f1e9d8;
+    --surface-sunken: #efe7d6;
+    --line: #e3d9c5;
+    --ink: #2b2622;
+    --ink-muted: #6e6358;
+    --ink-faint: #9b9184;
+
+    --accent: #167a7a;
+    --accent-dark: #0f5c5c;
+    --accent-soft: #2fa3a3;
+    --accent-on-dark: #62cfcf;
+    --accent-tint: #ddedea;
+    --reward: #c8922e;
+    --reward-ink: #9a6e1e;
+    --reward-soft: #f0dcae;
+    --state-ok: #2e9e5b;
+    --state-ok-ink: #1c7a44;
+
+    --grad-joy: linear-gradient(165deg, #0f5c5c, #0b4444);
+    --grad-dark: linear-gradient(165deg, #103a37 0%, #0c2b29 100%);
+    --grad-brand: linear-gradient(180deg, #1a8585, #126363);
+
+    --shadow-sticky: 1px 3px 6px rgba(60, 45, 28, 0.22);
+    --shadow-card: 0 10px 26px rgba(60, 45, 28, 0.14);
+    --shadow-app: 0 24px 70px rgba(0, 0, 0, 0.55);
+    --border-slot: 2px dashed #cdbfa3;
+
+    --font-base: "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP",
+      "Yu Gothic", "YuGothic", Meiryo, system-ui, -apple-system, "Segoe UI",
+      Roboto, sans-serif;
+    --fs-display-lg: 2.125rem;
+    --fs-display: 1.75rem;
+    --fs-title: 1.375rem;
+    --fs-heading: 1.125rem;
+    --fs-body: 1rem;
+    --fs-body-sm: 0.875rem;
+    --fs-caption: 0.8125rem;
+    --fs-sticky: 0.9375rem;
+    --fs-sticky-sm: 0.8125rem;
+    --lh-body: 1.7;
+    --lh-tight: 1.3;
+    --ls-wide: 0.12em;
+
+    --space-2xs: 4px; --space-xs: 8px; --space-sm: 12px; --space-md: 16px;
+    --space-lg: 24px; --space-xl: 32px; --space-2xl: 48px;
+
+    --radius-sticky: 3px; --radius-sm: 10px; --radius-md: 14px;
+    --radius-lg: 18px; --radius-app: 24px; --radius-pill: 999px;
+
+    --motion-fast: 120ms; --motion-base: 200ms; --motion-emphasis: 450ms;
+    --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+    --app-max: 480px;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    font-family: var(--font-base);
+    color: var(--ink);
+    line-height: var(--lh-body);
+    /* PC 余白にはやわらかい光（app.css .app-shell と同じ意図） */
+    background:
+      radial-gradient(120% 80% at 50% -10%, rgba(22,122,122,0.34), rgba(22,122,122,0) 60%),
+      radial-gradient(90% 60% at 50% 110%, rgba(185,84,47,0.12), rgba(185,84,47,0) 55%),
+      var(--bg-outer);
+    -webkit-text-size-adjust: 100%;
+  }
+
+  /* モック陳列: 4画面を横に並べて比較できるようにする（実機は1画面ずつ遷移） */
+  .mock-caption {
+    color: #f0e9da; text-align: center; font-weight: 800;
+    padding: 20px 16px 4px; letter-spacing: var(--ls-wide); font-size: 13px;
+  }
+  .mock-sub { color: #b9ad99; text-align: center; font-size: 12px; padding-bottom: 16px; }
+  .gallery {
+    display: flex; gap: 28px; padding: 8px 28px 48px;
+    overflow-x: auto; align-items: flex-start; justify-content: flex-start;
+  }
+  .device-wrap { flex: 0 0 auto; }
+  .device-label {
+    color: #cdbf9f; font-size: 12px; font-weight: 700; text-align: center;
+    margin-bottom: 8px; letter-spacing: .04em;
+  }
+
+  /* 390px 端末枠（iPhone 相当） */
+  .device {
+    width: 390px; height: 760px;
+    background: var(--paper);
+    border-radius: var(--radius-app);
+    box-shadow: var(--shadow-app);
+    overflow: hidden;
+    display: flex; flex-direction: column;
+    position: relative;
+  }
+
+  /* ===== appbar（本編と同じ。オンボでは出さないが文脈用に薄く） ===== */
+
+  /* ===== 画面共通 ===== */
+  .screen {
+    flex: 1; display: flex; flex-direction: column;
+    padding: var(--space-lg) var(--space-md);
+    overflow: hidden;
+  }
+  .screen-dark { background: var(--grad-dark); color: #fff; text-align: center; }
+  /* S0 ヒーロー（明るい版）。本編のクラフト紙地とトーンを揃える。
+     上に淡いティールの放射光を一筋だけ敷き、のっぺりさせない（多色グラデは使わない）。 */
+  .screen-hero {
+    background:
+      radial-gradient(120% 70% at 50% -10%, rgba(22,122,122,.12), rgba(22,122,122,0) 60%),
+      var(--paper);
+    color: var(--ink); text-align: center;
+  }
+
+  /* 進行ドット（4つ）。点灯に文言を付けない＝残量の地図 */
+  .dots { display: flex; gap: 8px; justify-content: center; margin: 0 0 var(--space-md); }
+  .dot {
+    width: 9px; height: 9px; border-radius: 50%;
+    background: rgba(0,0,0,.14);
+  }
+  .screen-dark .dot { background: rgba(255,255,255,.22); }
+  .dot.on { background: var(--accent); }
+  .screen-dark .dot.on { background: var(--accent-on-dark); }
+  /* S0 先頭はうっすら金（endowed-progress：もう始まっている感） */
+  .dot.seed { background: var(--reward); opacity: .5; box-shadow: 0 0 6px rgba(200,146,46,.5); }
+
+  /* ===== ヒーローの付箋チップ（キャラの代わり。カード色の小片で製品を予告） ===== */
+  .hero-chips { display: flex; gap: 8px; justify-content: center; margin-bottom: var(--space-md); }
+  .chip-note {
+    width: 26px; height: 26px; border-radius: 4px;
+    /* クラフト紙の地に合わせ、付箋の柔らかい茶系の影（紫みを排す） */
+    box-shadow: var(--shadow-sticky), inset 0 1px 0 rgba(255,255,255,.4);
+  }
+  /* 少しずつ傾けて「貼られた付箋」感を出す（静的・reduced-motion 無関係） */
+  .chip-note.c-event   { background: var(--es-event);   transform: rotate(-7deg); }
+  .chip-note.c-command { background: var(--es-command); transform: rotate(3deg); }
+  .chip-note.c-policy  { background: var(--es-policy);  transform: rotate(-3deg); }
+
+  /* ===== S0 ヒーロー ===== */
+  /* 既定（明るい地）はティールの kicker。ダーク地のときだけ白＋影に切替。 */
+  .kicker {
+    font-size: var(--fs-caption); letter-spacing: var(--ls-wide);
+    color: var(--accent); font-weight: 800;
+  }
+  .screen-dark .kicker { color: rgba(255,255,255,.95); text-shadow: 0 1px 2px rgba(8,40,38,.5); }
+  /* 上：読むだけゾーン。キャラがない分、上部余白を残して中央寄りに置きバランスを取る */
+  .read-zone { flex: 1 1 auto; display: flex; flex-direction: column; justify-content: center; padding-top: var(--space-lg); }
+  .thumb-zone { margin-top: auto; } /* 下：親指で押すゾーン（CTA 固定位置） */
+  .hero-title {
+    font-size: var(--fs-display); font-weight: 900; margin: var(--space-sm) 0 var(--space-2xs);
+    line-height: 1.25;
+  }
+  /* 明るい地では補助文を ink-muted（AA 確保）。ダーク地のときだけ白＋影。 */
+  .hero-sub { font-size: var(--fs-body); margin: 0 auto var(--space-md); max-width: 320px; color: var(--ink-muted); }
+  .screen-dark .hero-sub { color: rgba(255,255,255,.95); opacity: .95; text-shadow: 0 1px 2px rgba(8,40,38,.5); }
+  /* ハイライト（“読み方”）はティール。タイトルの hl は金のままだが、ここは本文中なので accent。 */
+  .hero-sub strong { color: var(--accent-dark); }
+
+  /* ===== 3D チャンキーピル CTA（Duolingo 風 / app.css .btn-primary） ===== */
+  .cta {
+    display: flex; align-items: center; justify-content: center; gap: var(--space-xs);
+    width: 100%; min-height: 56px; border: none; cursor: pointer;
+    border-radius: var(--radius-md);
+    background: var(--accent); color: #fff;
+    font-size: var(--fs-heading); font-weight: 800; font-family: inherit;
+    padding: var(--space-md);
+    box-shadow: 0 5px 0 var(--accent-dark);
+    transition: transform var(--motion-fast) var(--ease-out),
+      box-shadow var(--motion-fast) var(--ease-out), filter var(--motion-fast);
+  }
+  .cta:active { transform: translateY(5px); box-shadow: 0 0 0 var(--accent-dark); }
+  .screen-dark .cta { box-shadow: 0 5px 0 #0a3a38; }
+  .screen-dark .cta:active { box-shadow: 0 0 0 #0a3a38; }
+  .cta:disabled { opacity: .45; filter: grayscale(.35); cursor: not-allowed; }
+
+  /* ゴースト・スキップ（控えめ。右上の極小×は使わない） */
+  .skip {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: auto; margin: var(--space-sm) auto 0; min-height: 44px; padding: 6px 18px;
+    background: transparent; border: 2px solid rgba(255,255,255,.45);
+    color: rgba(255,255,255,.95); font-weight: 800; font-family: inherit;
+    border-radius: var(--radius-md); cursor: pointer; box-shadow: 0 4px 0 rgba(255,255,255,.16);
+    font-size: var(--fs-body-sm);
+  }
+  .skip:active { transform: translateY(4px); box-shadow: 0 0 0 rgba(255,255,255,.16); }
+  .skip.on-light { border-color: var(--line); color: var(--ink-muted); box-shadow: 0 4px 0 var(--line); }
+
+  /* ===== 状況文（クラフト紙の枠） ===== */
+  .scenario {
+    background: var(--scenario-bg); border-radius: var(--radius-md);
+    padding: var(--space-sm) var(--space-md); font-size: var(--fs-body);
+    font-weight: 700; line-height: var(--lh-tight); color: var(--ink);
+    margin-bottom: var(--space-md);
+  }
+
+  /* ===== 盤・スロット（点線=未確定 / 実線=確定） ===== */
+  .board { background: var(--board); border-radius: var(--radius-md); padding: var(--space-md);
+    flex: 1; display: flex; flex-direction: column; gap: var(--space-sm); min-height: 0; }
+  .slot {
+    border: var(--border-slot); border-radius: var(--radius-md);
+    min-height: 96px; display: flex; align-items: center; justify-content: center;
+    color: var(--accent); font-weight: 800; font-size: var(--fs-body-sm);
+    background: rgba(22,122,122,.06); text-align: center; padding: var(--space-xs);
+  }
+  .slot.pulse { animation: pulse 1.6s ease-in-out infinite; }
+  @keyframes pulse {
+    0%,100% { box-shadow: 0 0 0 0 rgba(22,122,122,0); }
+    50% { box-shadow: 0 0 0 4px rgba(22,122,122,.12); }
+  }
+  .slot.filled { border: 2px solid var(--accent); border-style: solid; background: #fff; }
+  /* 因果成立時の定常状態は border（緑実線）。reduced-motion でも残る＝動きに依存しない確証 */
+  .slot.linked { border: 2px solid var(--state-ok); background: #fff; }
+  .slot.linked.glow { animation: wireGlow 250ms var(--ease-out); }
+  @keyframes wireGlow {
+    0% { box-shadow: 0 0 0 0 rgba(46,158,91,0); }
+    50% { box-shadow: 0 0 0 6px rgba(46,158,91,.35); }
+    100% { box-shadow: 0 0 0 0 rgba(46,158,91,0); }
+  }
+
+  /* ===== 付箋（app.css .sticky） ===== */
+  .sticky {
+    position: relative; border-radius: var(--radius-sticky);
+    box-shadow: var(--shadow-sticky); padding: var(--space-sm) var(--space-sm) var(--space-xs);
+    font-size: var(--fs-sticky); font-weight: 700; line-height: var(--lh-tight);
+    color: var(--ink); user-select: none; min-width: 0;
+  }
+  .sticky::before {
+    content: ""; position: absolute; inset: 0; border-radius: inherit;
+    background: linear-gradient(160deg, rgba(255,255,255,.35), rgba(255,255,255,0) 45%);
+    pointer-events: none;
+  }
+  .sticky .meta {
+    display: flex; align-items: center; gap: 4px;
+    font-size: var(--fs-caption); font-weight: 800; opacity: .88; margin-bottom: 2px;
+  }
+  .sticky .ic { width: 14px; height: 14px; flex: none; }
+  .sticky.event { background: var(--es-event); color: var(--es-event-ink); }
+  .sticky.command { background: var(--es-command); color: var(--es-command-ink); }
+  .sticky.policy { background: var(--es-policy); color: var(--es-policy-ink); }
+
+  /* 手札トレイ（親指ゾーン。常に必要枚数だけ） */
+  .hand {
+    display: flex; gap: var(--space-sm); justify-content: center; flex-wrap: wrap;
+    margin-top: var(--space-md);
+  }
+  .hand-card {
+    border: none; background: none; padding: 0; cursor: pointer; font-family: inherit;
+    min-width: 44px; min-height: 44px;
+  }
+  .hand-card .sticky { min-width: 150px; }
+  .hand-card[aria-disabled="true"] { opacity: .35; pointer-events: none; }
+  .hand-hint { font-size: var(--fs-caption); color: var(--ink-muted); text-align: center; margin-top: var(--space-xs); }
+
+  /* 配置後の開示（置いたカードの“真下”・自動表示・dismiss 不要） */
+  .reveal {
+    margin-top: var(--space-sm); font-size: var(--fs-body-sm); line-height: var(--lh-body);
+    background: rgba(46,158,91,.10); border-left: 3px solid var(--state-ok);
+    border-radius: var(--radius-sm); padding: var(--space-sm) var(--space-md);
+    animation: riseIn var(--motion-base) var(--ease-out);
+  }
+  @keyframes riseIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  .reveal b { color: var(--state-ok-ink); }
+  .reveal .honest { display: block; margin-top: 6px; color: var(--ink-muted); font-size: var(--fs-caption); }
+
+  /* 本文中の用語（点線下線・タップで定義）。色で意味を持たせない＝本文 ink のまま。
+     44px ヒット領域を inline-block + padding で確保。 */
+  .term {
+    border: none; background: none; font: inherit; color: inherit; cursor: help;
+    border-bottom: 1px dashed currentColor;
+    display: inline-block; padding: 10px 2px; line-height: 1; margin: -10px 0;
+  }
+  .term:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+  /* ⓘ ボタン（種別の定義）。グリフは小さく、ヒット領域は 44px */
+  .info-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 44px; min-height: 44px; margin: -10px; padding: 10px;
+    border: none; background: none; cursor: pointer; color: var(--accent);
+  }
+
+  /* ===== S3 因果連鎖（390px 縦積み・横スクロールなし） ===== */
+  .chain { display: flex; flex-direction: column; gap: 4px; flex: 1; min-height: 0; justify-content: center; }
+  .chain-row { display: flex; align-items: center; gap: var(--space-sm); }
+  .chain-row .sticky { flex: 1; }
+  .chain-row .slot { flex: 1; min-height: 60px; }
+  .chain-tag {
+    flex: none; width: 64px; font-size: var(--fs-caption); font-weight: 800;
+    color: var(--ink-muted); text-align: right;
+  }
+  /* ノード間の矢印（因果方向を色だけに頼らず形で示す） */
+  .chain-arrow { display: flex; align-items: center; gap: 6px; padding-left: 72px; color: var(--ink-muted); }
+  .chain-arrow svg { width: 16px; height: 16px; }
+  .chain-arrow .mark { font-weight: 900; }
+  .chain-arrow .mark.q { color: var(--ink-muted); }
+  .chain-arrow .mark.ok { color: var(--state-ok); }
+  .loop-note {
+    display: flex; align-items: center; gap: 6px; justify-content: center;
+    font-size: var(--fs-caption); color: var(--accent-dark); font-weight: 800;
+    margin-top: var(--space-xs);
+  }
+
+  /* 締めの本編 CTA まわり */
+  .closer-reveal {
+    margin-top: var(--space-sm); font-size: var(--fs-body-sm); line-height: var(--lh-body);
+    background: var(--surface-sunken); border-radius: var(--radius-md);
+    padding: var(--space-sm) var(--space-md);
+  }
+  .closer-reveal b { color: var(--accent-dark); }
+  .replay-note { font-size: var(--fs-caption); color: var(--ink-muted); text-align: center; margin-top: var(--space-xs); }
+
+  /* スクリーンリーダ専用（配置/開示/連結の等価通知） */
+  .sr-only {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+  }
+
+  /* 注記カード（モックの説明。実機には出ない） */
+  .note {
+    width: 390px; margin: 14px auto 0; color: #d8ccb3; font-size: 12px; line-height: 1.6;
+    background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08);
+    border-radius: 12px; padding: 10px 14px;
+  }
+  .note b { color: #f0e9da; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .slot.pulse, .slot.linked.glow, .reveal { animation: none !important; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="mock-caption">StormQuest — オンボーディング（mobile 390px モック）</div>
+  <div class="mock-sub">ベンチマーク調査 → デザイナー5人 → 統合 → 3審査官検証（fix-then-ship 修正反映済み）／4画面の scaffolded-discovery</div>
+
+  <div class="gallery">
+
+    <!-- ============ S0 価値とトーン ============ -->
+    <div class="device-wrap">
+      <div class="device-label">S0  — 価値とトーン（読むだけ・3秒）</div>
+      <div class="device">
+        <div class="screen screen-hero">
+          <div class="read-zone">
+            <!-- キャラクターは置かない。代わりに付箋メタファ（カード色の小チップ）で
+                 「これは EventStorming のツール」を一目で示す（製品プレビュー）。 -->
+            <div class="hero-chips" aria-hidden="true">
+              <span class="chip-note c-event"></span>
+              <span class="chip-note c-command"></span>
+              <span class="chip-note c-policy"></span>
+            </div>
+            <div class="kicker">EVENTSTORMING を、手で。</div>
+            <h1 class="hero-title">複雑な業務も、<br>付箋1枚ずつでほどける。</h1>
+            <!-- 万能感を弱め competence-entry に（審査官 fix） -->
+            <p class="hero-sub">5分で、EventStorming の“色と文法”の<strong>読み方</strong>がつかめる。</p>
+            <div class="dots" aria-hidden="true">
+              <span class="dot seed"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span>
+            </div>
+          </div>
+          <div class="thumb-zone">
+            <button class="cta">付箋を置いてみる
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>
+            </button>
+            <button class="skip on-light">スキップ</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ S1 イベントを置く ============ -->
+    <div class="device-wrap">
+      <div class="device-label">S1 — イベントを置く（最速の成功・10秒）</div>
+      <div class="device">
+        <div class="screen" id="s1">
+          <div class="dots" aria-hidden="true">
+            <span class="dot on"></span><span class="dot on"></span><span class="dot"></span><span class="dot"></span>
+          </div>
+          <div class="scenario">🍕 お店で、ピザが焼き上がった——これは“もう起きたこと”。</div>
+
+          <div class="board">
+            <div class="slot pulse" id="s1-slot" data-empty="ここにタップで置く">ここにタップで置く</div>
+            <div id="s1-reveal-host"></div>
+          </div>
+
+          <div class="hand" id="s1-hand">
+            <button class="hand-card" id="s1-card" aria-label="ピザが焼き上がった を置く">
+              <span class="sticky event">
+                <span class="meta">
+                  <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L4.5 13.5H11l-1 8.5L19.5 10H13z"/></svg>
+                  イベント
+                </span>
+                ピザが焼き上がった
+              </span>
+            </button>
+          </div>
+          <div class="hand-hint">付箋をタップ → スロットをタップで置く</div>
+          <div class="sr-only" role="status" aria-live="polite" id="s1-sr"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ S2 コマンドを置く ============ -->
+    <div class="device-wrap">
+      <div class="device-label">S2 — コマンドを置く（時制で見分ける）</div>
+      <div class="device">
+        <div class="screen" id="s2">
+          <div class="dots" aria-hidden="true">
+            <span class="dot on"></span><span class="dot on"></span><span class="dot on"></span><span class="dot"></span>
+          </div>
+          <div class="scenario">お店はまだ“これからやる”ことがある——配達員を割り当てる。</div>
+
+          <div class="board">
+            <!-- S1 で置いた橙を残置（積み上がり・対比） -->
+            <div class="slot filled">
+              <span class="sticky event">
+                <span class="meta">
+                  <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L4.5 13.5H11l-1 8.5L19.5 10H13z"/></svg>
+                  イベント
+                </span>
+                ピザが焼き上がった
+              </span>
+            </div>
+            <div class="slot pulse" id="s2-slot">ここにタップで置く</div>
+            <div id="s2-reveal-host"></div>
+          </div>
+
+          <div class="hand" id="s2-hand">
+            <button class="hand-card" id="s2-card" aria-label="配達員を割り当てる を置く">
+              <span class="sticky command">
+                <span class="meta">
+                  <svg class="ic" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M6 4l14 8-14 8z"/></svg>
+                  コマンド
+                </span>
+                配達員を割り当てる
+              </span>
+            </button>
+          </div>
+          <div class="hand-hint">事実（橙）の隣に、まだ起きていない“指示”を置く</div>
+          <div class="sr-only" role="status" aria-live="polite" id="s2-sr"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ S3 因果を1本つなぐ（Event→Policy→Command→Event） ============ -->
+    <div class="device-wrap">
+      <div class="device-label">S3 — 因果をつなぐ（山場・ループが閉じる）</div>
+      <div class="device">
+        <div class="screen" id="s3">
+          <div class="dots" aria-hidden="true">
+            <span class="dot on"></span><span class="dot on"></span><span class="dot on"></span><span class="dot on"></span>
+          </div>
+          <div class="scenario">“焼き上がった”が、どうやって“割り当てる”を呼ぶ？</div>
+
+          <!-- 390px 縦積み（横スクロールなし）。Event→Policy→Command→Event でループが閉じる -->
+          <div class="chain">
+            <div class="chain-row">
+              <span class="chain-tag">事実</span>
+              <span class="sticky event">
+                <span class="meta"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L4.5 13.5H11l-1 8.5L19.5 10H13z"/></svg>イベント</span>
+                ピザが焼き上がった
+              </span>
+            </div>
+            <div class="chain-arrow"><span class="mark q" id="a1-mark">?</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M6 13l6 6 6-6"/></svg>
+            </div>
+
+            <div class="chain-row">
+              <span class="chain-tag">ルール</span>
+              <span class="slot pulse" id="s3-slot">ここに置く</span>
+            </div>
+            <div class="chain-arrow"><span class="mark q" id="a2-mark">?</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M6 13l6 6 6-6"/></svg>
+            </div>
+
+            <div class="chain-row">
+              <span class="chain-tag">指示</span>
+              <span class="sticky command">
+                <span class="meta"><svg class="ic" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M6 4l14 8-14 8z"/></svg>コマンド</span>
+                配達員を割り当てる
+              </span>
+            </div>
+            <!-- ループが閉じる：Command が新たな Event を生む（CONTEXT.md L58） -->
+            <div class="chain-arrow"><span class="mark q" id="a3-mark">?</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M6 13l6 6 6-6"/></svg>
+            </div>
+            <div class="chain-row">
+              <span class="chain-tag">新事実</span>
+              <span class="sticky event" id="s3-loopevt" style="opacity:.45">
+                <span class="meta"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L4.5 13.5H11l-1 8.5L19.5 10H13z"/></svg>イベント</span>
+                配達員が割り当てられた
+              </span>
+            </div>
+          </div>
+
+          <div class="hand" id="s3-hand">
+            <button class="hand-card" id="s3-card" aria-label="焼き上がったら配達を手配する を置く">
+              <span class="sticky policy">
+                <span class="meta">
+                  <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/></svg>
+                  ポリシー
+                </span>
+                焼き上がったら配達を手配する
+              </span>
+            </button>
+          </div>
+          <div id="s3-reveal-host"></div>
+          <div class="sr-only" role="status" aria-live="polite" id="s3-sr"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="note">
+    <b>触って確認できます。</b> 各画面で付箋をタップ→スロットをタップすると、置いた“後”にラベルと「なぜ」が真下に開きます（scaffolded discovery）。
+    S3 はポリシーを置くと因果連鎖が緑で確定し、ループ（指示→新しい事実）が閉じます。
+    <br><b>審査反映:</b> 因果連鎖は <b>Event→Policy→Command→Event</b>（4ノード・CONTEXT.md L58）／390px は S3 を縦積み／緑実線は reduced-motion でも残る／点線語・ⓘは44px／aria-live で SR 等価通知／コピーは「読み方がつかめる」に。
+    <br><b>haptic（任意）:</b> 実機では初成功(S1)と因果成立(S3)で <code>navigator.vibrate</code> を feature-detect 付きで足す想定（新規・任意。視覚snap+aria-liveで等価担保）。
+  </div>
+
+<script>
+  // モック用の最小スクリプト（実装は React。ここは「触って意匠を確認」するためだけ）。
+  function place(cardId, slotId, revealHTML, srText, onPlaced) {
+    var card = document.getElementById(cardId);
+    var slot = document.getElementById(slotId);
+    var host = document.getElementById(slotId.replace('-slot', '-reveal-host'));
+    var sr = document.getElementById(slotId.replace('-slot', '-sr'));
+    if (!card || !slot) return;
+    var armed = false;
+    card.addEventListener('click', function () {
+      armed = true;
+      slot.classList.add('pulse');
+    });
+    slot.addEventListener('click', function () {
+      if (!armed && !card.dataset.tapFirst) {
+        // 直接スロットを押しても置けるようにする（モックの親切さ）
+      }
+      // カードを複製してスロットに収める
+      var sticky = card.querySelector('.sticky').cloneNode(true);
+      slot.innerHTML = '';
+      slot.appendChild(sticky);
+      slot.classList.remove('pulse');
+      slot.classList.add(onPlaced === 'link' ? 'linked' : 'filled');
+      if (onPlaced === 'link') slot.classList.add('glow');
+      card.setAttribute('aria-disabled', 'true');
+      if (host && revealHTML) host.innerHTML = revealHTML;
+      if (sr && srText) sr.textContent = srText;
+      if (typeof onPlaced === 'function') onPlaced();
+    });
+  }
+
+  // S1: イベントを置く
+  place('s1-card', 's1-slot',
+    '<div class="reveal"><b>正解。</b>「〜した／された」の過去形＝もう取り消せない事実。だからオレンジ⚡＝' +
+    '<button class="term">ドメインイベント</button>。' +
+    '<span class="honest">分からない語は、点線の語や <span style="white-space:nowrap">ⓘ</span> をタップすると“なぜ”が読めます。</span></div>',
+    '置けました。これはドメインイベントです。');
+
+  // S2: コマンドを置く
+  place('s2-card', 's2-slot',
+    '<div class="reveal"><b>「〜する」は現在形＝</b>まだ起きていない“意図”。だから事実（オレンジ）でなくコマンド（水色▶）。見分けは色でなく“時制”。' +
+    '<span class="honest">起こすのは人とは限らない——お店のルール（ポリシー）のことも。</span></div>');
+
+  // S3: 因果をつなぐ（ループを閉じる）
+  (function () {
+    var card = document.getElementById('s3-card');
+    var slot = document.getElementById('s3-slot');
+    var host = document.getElementById('s3-reveal-host');
+    var sr = document.getElementById('s3-sr');
+    var loopEvt = document.getElementById('s3-loopevt');
+    function linkAll() {
+      var sticky = card.querySelector('.sticky').cloneNode(true);
+      slot.innerHTML = '';
+      slot.appendChild(sticky);
+      slot.classList.remove('pulse');
+      slot.classList.add('linked', 'glow');
+      card.setAttribute('aria-disabled', 'true');
+      // 使い終えた手札は隠す（連鎖は固定高なので、残すと新事実カードに重なる）
+      document.getElementById('s3-hand').style.display = 'none';
+      // 矢印の ? → ✓（色だけに頼らない）
+      ['a1-mark', 'a2-mark', 'a3-mark'].forEach(function (id) {
+        var m = document.getElementById(id);
+        m.textContent = '✓'; m.classList.remove('q'); m.classList.add('ok');
+      });
+      if (loopEvt) loopEvt.style.opacity = '1';
+      host.innerHTML =
+        '<div class="closer-reveal">これが EventStorming の背骨。<b>事実（⚡）→ ルール（⚙）→ 指示（▶）</b>。' +
+        'そしてその指示が新しい事実『配達員が割り当てられた』を生み、また次のルールを呼ぶ。' +
+        '<div class="loop-note">' +
+        '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 2l4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/></svg>' +
+        'Event → Policy → Command → Event（ぐるぐる回る）</div></div>' +
+        '<button class="cta" style="margin-top:12px">さあ本編へ ▶</button>' +
+        '<div class="replay-note">チュートリアルはメニューからいつでも見れます。</div>';
+      if (sr) sr.textContent = '焼き上がった(イベント)→焼き上がったら配達を手配する(ポリシー)→配達員を割り当てる(コマンド)→配達員が割り当てられた(イベント) が繋がりました。';
+    }
+    card.addEventListener('click', function () { slot.classList.add('pulse'); });
+    slot.addEventListener('click', linkAll);
+  })();
+
+  // 用語タップ（点線下線）の簡易フィードバック（実機は DefinitionSheet）
+  document.body.addEventListener('click', function (e) {
+    var t = e.target.closest('.term');
+    if (t) alert('ドメインイベント / Domain Event\n\nビジネス上で「過去に起きた事実」。必ず過去形（〜した／〜された）。\n\n（実機では下から定義シートがせり上がります）');
+  });
+</script>
+</body>
+</html>

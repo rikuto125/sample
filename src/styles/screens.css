@@ -416,6 +416,14 @@
 .complete { position: relative; overflow: hidden; }
 .finish-celebrate { display: flex; align-items: flex-end; justify-content: center; gap: var(--space-sm); margin-top: var(--space-md); }
 .finish-mascot { animation: popIn var(--motion-emphasis) var(--ease-out) both; }
+/* 写真調マスコット（円メダリオン）。完走の山場にだけ出す。
+   ダーク地に映えるよう淡い縁＋落ち影、登場は popIn（reduced-motion で無効）。 */
+.mascot-image { display: block; }
+.finish-mascot-img {
+  border-radius: var(--radius-pill);
+  box-shadow: 0 10px 30px rgba(12, 43, 41, 0.5), 0 0 0 3px rgba(255, 255, 255, 0.16);
+  animation: popIn var(--motion-emphasis) var(--ease-out) both;
+}
 .finish-emoji {
   display: inline-flex; align-items: center; justify-content: center;
   width: 88px; height: 88px; margin: 0 0 var(--space-2xs);
@@ -454,7 +462,7 @@
   100% { transform: translateY(120vh) rotate(var(--rot, 360deg)); opacity: 0; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .result-mascot, .finish-mascot, .finish-emoji, .onboard-mascot-cheer { animation: none !important; }
+  .result-mascot, .finish-mascot, .finish-mascot-img, .finish-emoji, .onboard-mascot-cheer { animation: none !important; }
   .confetti { display: none !important; }
 }
 .finish-stats { display: flex; justify-content: center; gap: var(--space-xl); margin-bottom: var(--space-lg); }
@@ -469,44 +477,124 @@
 .nc-def { font-size: var(--fs-body-sm); opacity: .9; line-height: var(--lh-body); }
 .finish-note { font-size: var(--fs-body-sm); opacity: .8; margin: var(--space-md) 0; }
 
-/* ===== Onboarding ===== */
-.onboarding { display: flex; flex-direction: column; align-items: center; }
-/* 最初の画面こそ作り込む: タイトル＋導入をブランドのパネルに収める */
-.onboard-hero {
-  position: relative; overflow: hidden;
-  width: 100%; text-align: center;
-  background: var(--grad-joy);
-  border-radius: var(--radius-lg);
-  padding: var(--space-lg) var(--space-md);
-  margin-bottom: var(--space-xl);
-  box-shadow: 0 16px 40px rgba(15, 92, 92, 0.30);
+/* ===== Onboarding（4画面・scaffolded discovery）=====
+   置く→置いた“後”にラベルと「なぜ」を開示。最後に因果連鎖を1本つなぎループを閉じる。
+   キャラは使わず付箋チップで製品を予告。S0 は本編とトーンを揃えた明るいクラフト地。 */
+.ob { display: flex; flex-direction: column; }
+.ob-screen { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+
+/* 進行ドット（4つ）。点灯に文言を付けない＝残量の地図 */
+.ob-dots { display: flex; gap: 8px; justify-content: center; margin: 0 0 var(--space-md); }
+.ob-dot { width: 9px; height: 9px; border-radius: 50%; background: rgba(0,0,0,.14); }
+.ob-dot.on { background: var(--accent); }
+/* 先頭はうっすら金（endowed-progress：もう始まっている感） */
+.ob-dot.seed { background: var(--reward); opacity: .5; box-shadow: 0 0 6px rgba(200,146,46,.5); }
+
+/* --- S0 ヒーロー（明るいクラフト地。上に淡いティールの放射光を一筋）--- */
+.ob-hero {
+  text-align: center;
+  background:
+    radial-gradient(120% 70% at 50% -10%, rgba(22,122,122,.12), rgba(22,122,122,0) 60%),
+    var(--paper);
 }
-.onboard-hero::after {
-  content: ""; position: absolute; top: -45%; left: -15%;
-  width: 220px; height: 220px; border-radius: 50%;
-  background: radial-gradient(circle, rgba(255,255,255,.32), rgba(255,255,255,0) 70%);
-  pointer-events: none;
+.ob-read {
+  flex: 1 1 auto; display: flex; flex-direction: column; justify-content: center;
+  padding-top: var(--space-lg);
 }
-.onboard-hero > * { position: relative; }
-.onboard-hero .kicker, .onboard-lead { text-shadow: 0 1px 2px rgba(8, 40, 38, 0.5); }
-.onboarding .kicker { font-size: var(--fs-caption); letter-spacing: var(--ls-wide); color: rgba(255,255,255,.95); font-weight: 800; }
-.onboard-title { font-size: var(--fs-display); font-weight: 900; margin: var(--space-xs) 0; }
-.onboard-title .hl { color: var(--reward); }
-.onboard-lead { opacity: .95; max-width: 360px; margin: 0 auto; font-size: var(--fs-body); }
-.onboard-board { width: 100%; margin-bottom: var(--space-xl); }
-.onboard-slot {
+.ob-thumb { margin-top: auto; }
+/* 付箋チップ（キャラの代わり。カード色の小片で製品を予告） */
+.ob-chips { display: flex; gap: 8px; justify-content: center; margin-bottom: var(--space-md); }
+.ob-chip {
+  width: 26px; height: 26px; border-radius: 4px;
+  box-shadow: var(--shadow-sticky), inset 0 1px 0 rgba(255,255,255,.4);
+}
+.ob-chip.c-event { background: var(--es-event); transform: rotate(-7deg); }
+.ob-chip.c-command { background: var(--es-command); transform: rotate(3deg); }
+.ob-chip.c-policy { background: var(--es-policy); transform: rotate(-3deg); }
+.ob-kicker { font-size: var(--fs-caption); letter-spacing: var(--ls-wide); color: var(--accent); font-weight: 800; }
+.ob-title { font-size: var(--fs-display); font-weight: 900; margin: var(--space-sm) 0 var(--space-2xs); line-height: 1.25; }
+.ob-sub { font-size: var(--fs-body); margin: 0 auto var(--space-md); max-width: 320px; color: var(--ink-muted); }
+.ob-sub strong { color: var(--accent-dark); }
+.ob-skip { max-width: 200px; margin-left: auto; margin-right: auto; }
+
+/* --- S1/S2 置く --- */
+.ob-scenario {
+  background: var(--scenario-bg); border-radius: var(--radius-md);
+  padding: var(--space-sm) var(--space-md); font-size: var(--fs-body);
+  font-weight: 700; line-height: var(--lh-tight); color: var(--ink);
+  margin-bottom: var(--space-md);
+}
+.ob-board { display: flex; flex-direction: column; gap: var(--space-sm); margin-bottom: var(--space-md); }
+.ob-slot {
   border: var(--border-slot); border-radius: var(--radius-md);
-  min-height: 90px; display: flex; align-items: center; justify-content: center;
-  background: rgba(255,255,255,.06);
+  min-height: 96px; display: flex; align-items: center; justify-content: center;
+  background: rgba(22,122,122,.06); width: 100%;
+  /* button リセット（スロットは button 化してタップ標的にする） */
+  font: inherit; color: var(--accent); cursor: pointer; text-align: center;
 }
-.onboard-slot.filled { border-color: var(--accent); border-style: solid; }
-.onboard-hand { background: none; border: none; padding: 0; }
-.onboard-success { animation: riseIn var(--motion-base) var(--ease-out); }
-.success-msg { display: flex; align-items: flex-start; gap: 8px; background: rgba(46,158,91,.28); border-radius: var(--radius-md); padding: var(--space-md); margin-bottom: var(--space-md); font-weight: 700; }
-.success-msg .lucide { color: #fff; flex: none; margin-top: 3px; }
-.onboard-tip { font-size: var(--fs-body-sm); }
-.onboard-tip .tip-i { vertical-align: -0.2em; }
-.onboarding .skip { max-width: 200px; margin-top: var(--space-lg); }
+.ob-slot:disabled { cursor: default; }
+.ob-slot-hint { color: var(--accent); font-weight: 800; font-size: var(--fs-body-sm); }
+.ob-slot.pulse { animation: obPulse 1.6s ease-in-out infinite; }
+@keyframes obPulse {
+  0%,100% { box-shadow: 0 0 0 0 rgba(22,122,122,0); }
+  50% { box-shadow: 0 0 0 4px rgba(22,122,122,.12); }
+}
+.ob-slot.filled { border: 2px solid var(--accent); border-style: solid; background: #fff; }
+
+.ob-hand { display: flex; gap: var(--space-sm); justify-content: center; margin-top: var(--space-md); }
+.ob-hand-card {
+  border: none; background: none; padding: 0; cursor: pointer; font: inherit;
+  min-width: 44px; min-height: 44px;
+}
+.ob-hand-card:active { transform: translateY(1px); }
+.ob-hint { font-size: var(--fs-caption); color: var(--ink-muted); text-align: center; margin-top: var(--space-xs); }
+.ob-next { margin-top: var(--space-md); }
+
+/* 配置後の開示（置いたカードの“真下”・自動表示・dismiss 不要） */
+.ob-reveal {
+  margin-top: var(--space-sm); font-size: var(--fs-body-sm); line-height: var(--lh-body);
+  background: rgba(46,158,91,.10); border-left: 3px solid var(--state-ok);
+  border-radius: var(--radius-sm); padding: var(--space-sm) var(--space-md);
+  animation: riseIn var(--motion-base) var(--ease-out);
+}
+.ob-reveal b { color: var(--state-ok-ink); }
+.ob-honest { display: block; margin-top: 6px; color: var(--ink-muted); font-size: var(--fs-caption); }
+/* 本文中の用語（点線下線・タップで定義）。色で意味を持たせない＝本文 ink のまま。
+   44px ヒット領域を inline-block + padding で確保。 */
+.ob-term {
+  border: none; background: none; font: inherit; color: inherit; cursor: help;
+  border-bottom: 1px dashed currentColor;
+  display: inline-block; padding: 10px 2px; line-height: 1; margin: -10px 0;
+}
+.ob-term:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+/* --- S3 因果連鎖（390px 縦積み・横スクロールなし。ループが閉じる）--- */
+.ob-chain { display: flex; flex-direction: column; gap: 4px; flex: 1; min-height: 0; justify-content: center; }
+.ob-chain-row { display: flex; align-items: center; gap: var(--space-sm); }
+.ob-chain-tag { flex: none; width: 56px; font-size: var(--fs-caption); font-weight: 800; color: var(--ink-muted); text-align: right; }
+.ob-chain-cell { flex: 1; }
+.ob-chain-cell.faded { opacity: .45; }
+.ob-chain-cell.linked .sticky { outline: 2px solid var(--state-ok); outline-offset: 1px; }
+.ob-slot.in-chain { flex: 1; min-height: 60px; }
+/* ノード間の矢印（因果方向を色だけに頼らず形で示す） */
+.ob-chain-arrow { display: flex; align-items: center; gap: 6px; padding-left: 68px; color: var(--ink-muted); }
+.ob-mark { font-weight: 900; }
+.ob-mark.q { color: var(--ink-muted); }
+.ob-mark.ok { color: var(--state-ok); }
+
+/* 連結成立後の締め（緑実線は border で残る＝reduced-motion でも消えない） */
+.ob-closer {
+  margin-top: var(--space-sm); font-size: var(--fs-body-sm); line-height: var(--lh-body);
+  background: var(--surface-sunken); border-radius: var(--radius-md);
+  padding: var(--space-sm) var(--space-md);
+}
+.ob-closer b { color: var(--accent-dark); }
+.ob-loop { display: flex; align-items: center; gap: 6px; justify-content: center; margin-top: var(--space-xs); color: var(--accent-dark); font-weight: 800; font-size: var(--fs-caption); }
+.ob-replay { font-size: var(--fs-caption); color: var(--ink-muted); text-align: center; margin-top: var(--space-xs); }
+
+@media (prefers-reduced-motion: reduce) {
+  .ob-slot.pulse, .ob-reveal { animation: none !important; }
+}
 
 /* ===== 個人ワーク（サンドボックス）===== */
 .sandbox-cta {
