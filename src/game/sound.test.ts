@@ -4,8 +4,10 @@ import { soundEngine, loadSoundEnabled, saveSoundEnabled } from './sound'
 // jsdom には AudioContext が無い。no-op で握りつぶし、テストを落とさないことを担保する。
 
 afterEach(() => {
-  localStorage.clear()
+  // engine の内部状態を OFF に戻してから localStorage を空にする
+  // （setEnabled は '0' を書くので、最後に clear して未設定＝既定状態へ戻す）。
   soundEngine.setEnabled(false)
+  localStorage.clear()
   vi.restoreAllMocks()
 })
 
@@ -39,11 +41,15 @@ describe('sound 設定の永続化（Progress とは別キー）', () => {
     expect(localStorage.getItem('stormquest.progress')).toBe('PRESERVE')
   })
 
-  it('loadSoundEnabled は未設定/壊れた値で false を返す', () => {
-    expect(loadSoundEnabled()).toBe(false)
+  it('loadSoundEnabled は既定 ON（未設定/壊れた値で true）。明示 0 のみ OFF', () => {
+    // 既定 ON: 初回プレイ（未設定）と壊れた値は ON。
+    expect(loadSoundEnabled()).toBe(true)
     localStorage.setItem('stormquest.sound', 'garbage')
-    expect(loadSoundEnabled()).toBe(false)
+    expect(loadSoundEnabled()).toBe(true)
     localStorage.setItem('stormquest.sound', '1')
     expect(loadSoundEnabled()).toBe(true)
+    // 明示的に OFF にした選択だけは尊重する。
+    localStorage.setItem('stormquest.sound', '0')
+    expect(loadSoundEnabled()).toBe(false)
   })
 })

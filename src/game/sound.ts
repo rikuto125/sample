@@ -24,9 +24,11 @@ const SAMPLE_URLS: Partial<Record<SoundName, string>> = {
 
 export function loadSoundEnabled(): boolean {
   try {
-    return localStorage.getItem(SETTING_KEY) === '1'
+    // 既定 ON。未設定（初回プレイ）は ON、明示的に '0' を保存した人だけ OFF を維持する。
+    // 実際の発音は自動再生制約により初回ユーザー操作後（AudioContext unlock 後）から。
+    return localStorage.getItem(SETTING_KEY) !== '0'
   } catch {
-    return false // プライベートモード等。既定 OFF。
+    return true // プライベートモード等で localStorage 不可でも既定 ON
   }
 }
 
