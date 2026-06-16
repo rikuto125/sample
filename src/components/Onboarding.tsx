@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useStore } from '../store'
 import { Sticky } from './Sticky'
 import { Icon } from './Icon'
+import { MascotImage } from './MascotImage'
 import { DefinitionSheet } from './DefinitionSheet'
 import { GLOSSARY } from '../game/glossary'
 import { track } from '../game/analytics'
@@ -159,12 +160,9 @@ function ValueScreen({ onNext, onSkip }: { onNext: () => void; onSkip: () => voi
   return (
     <div className="ob-screen ob-hero">
       <div className="ob-read">
-        {/* キャラは置かない。付箋チップ（カード色の小片）で「EventStorming のツール」を予告。 */}
-        <div className="ob-chips" aria-hidden>
-          <span className="ob-chip c-event" />
-          <span className="ob-chip c-command" />
-          <span className="ob-chip c-policy" />
-        </div>
+        {/* マスコット（DOMAIN EVENT / UI ELEMENTS の付箋を着ている）が
+            「EventStorming のツール」を一目で予告する。難しい題材の緊張を和らげる。 */}
+        <MascotImage mood="wink" size={128} className="ob-mascot" />
         <p className="ob-kicker">EVENTSTORMING を、手で。</p>
         <h1 className="ob-title">
           複雑な業務も、

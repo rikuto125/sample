@@ -4,7 +4,7 @@ import { useStore } from '../store'
 import { CARD_META } from '../game/cardMeta'
 import { track } from '../game/analytics'
 import { Icon } from './Icon'
-import { Mascot } from './Mascot'
+import { MascotImage } from './MascotImage'
 import { soundEngine as sound } from '../game/sound'
 
 export function ResultScreen() {
@@ -27,7 +27,7 @@ export function ResultScreen() {
 
   return (
     <div className="screen result screen-dark">
-      <Mascot mood="cheer" size={92} className="result-mascot" />
+      <MascotImage mood="wink" size={96} className="result-mascot-img" />
       <div className="result-title">STAGE CLEAR!</div>
       <div className="stars-big" aria-label={`${stars}つ星`}>
         {Array.from({ length: 3 }, (_, i) =>

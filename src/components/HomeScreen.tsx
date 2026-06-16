@@ -4,7 +4,7 @@ import { useStore } from '../store'
 import { clearedCount } from '../game/progress'
 import { track } from '../game/analytics'
 import { Icon, Stars } from './Icon'
-import { Mascot } from './Mascot'
+import { MascotImage } from './MascotImage'
 import { VocabCodex } from './VocabCodex'
 import type { Stage } from '../game/types'
 
@@ -128,7 +128,7 @@ export function HomeScreen() {
                       )}
                     </span>
                     {isCurrent && (
-                      <Mascot mood="happy" size={80} className="path-mascot" />
+                      <MascotImage mood="idea" size={72} small className="path-mascot" />
                     )}
                   </li>
                 )

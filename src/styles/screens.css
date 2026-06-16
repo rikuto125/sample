@@ -118,10 +118,15 @@
   border-top: 7px solid var(--board);
 }
 
-/* マスコットは現在ノードの脇に。ノードの傾きと逆側に置いて重なりを避ける */
-.path-mascot { position: absolute; bottom: -6px; filter: drop-shadow(0 6px 10px rgba(60,45,28,.18)); }
-.path-row.lean-left .path-mascot { right: -64px; }
-.path-row.lean-right .path-mascot { left: -64px; transform: scaleX(-1); }
+/* マスコット（写真メダリオン）は現在ノードの脇に。ノードの傾きと逆側に置いて重なりを避ける。
+   狭幅（390px）で枠外に見切れないよう、オフセットはノード幅に収め画面端に出さない。 */
+.path-mascot {
+  position: absolute; bottom: -6px; pointer-events: none;
+  border-radius: var(--radius-pill);
+  box-shadow: 0 5px 12px rgba(60,45,28,.18), 0 0 0 2px rgba(255,255,255,.7);
+}
+.path-row.lean-left .path-mascot { right: -34px; }
+.path-row.lean-right .path-mascot { left: -34px; }
 
 @keyframes nodeBob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
 @keyframes flagBob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
@@ -415,7 +420,6 @@
 /* ===== Complete ===== */
 .complete { position: relative; overflow: hidden; }
 .finish-celebrate { display: flex; align-items: flex-end; justify-content: center; gap: var(--space-sm); margin-top: var(--space-md); }
-.finish-mascot { animation: popIn var(--motion-emphasis) var(--ease-out) both; }
 /* 写真調マスコット（円メダリオン）。完走の山場にだけ出す。
    ダーク地に映えるよう淡い縁＋落ち影、登場は popIn（reduced-motion で無効）。 */
 .mascot-image { display: block; }
@@ -437,10 +441,14 @@
 }
 .finish-lead { opacity: .92; margin: var(--space-sm) auto var(--space-lg); max-width: 360px; }
 
-/* ===== マスコット & 祝福演出 ===== */
-.result-mascot { display: block; margin: 0 auto calc(-1 * var(--space-xs)); animation: popIn var(--motion-emphasis) var(--ease-out) both; }
-.onboard-mascot { display: block; margin: 0 auto var(--space-2xs); }
-.onboard-mascot-cheer { display: block; margin: 0 auto var(--space-sm); animation: popIn var(--motion-emphasis) var(--ease-out) both; }
+/* ===== マスコット & 祝福演出（写真調メダリオンに統一）===== */
+/* リザルトのマスコット（円メダリオン）。ダーク地に映える淡い縁＋落ち影。 */
+.result-mascot-img {
+  display: block; margin: 0 auto var(--space-2xs);
+  border-radius: var(--radius-pill);
+  box-shadow: 0 8px 24px rgba(12, 43, 41, 0.45), 0 0 0 3px rgba(255, 255, 255, 0.16);
+  animation: popIn var(--motion-emphasis) var(--ease-out) both;
+}
 
 /* ポップイン（弾む登場）。reduced-motion で無効化 */
 @keyframes popIn {
@@ -462,7 +470,7 @@
   100% { transform: translateY(120vh) rotate(var(--rot, 360deg)); opacity: 0; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .result-mascot, .finish-mascot, .finish-mascot-img, .finish-emoji, .onboard-mascot-cheer { animation: none !important; }
+  .result-mascot-img, .finish-mascot-img, .finish-emoji { animation: none !important; }
   .confetti { display: none !important; }
 }
 .finish-stats { display: flex; justify-content: center; gap: var(--space-xl); margin-bottom: var(--space-lg); }
@@ -502,15 +510,12 @@
   padding-top: var(--space-lg);
 }
 .ob-thumb { margin-top: auto; }
-/* 付箋チップ（キャラの代わり。カード色の小片で製品を予告） */
-.ob-chips { display: flex; gap: 8px; justify-content: center; margin-bottom: var(--space-md); }
-.ob-chip {
-  width: 26px; height: 26px; border-radius: 4px;
-  box-shadow: var(--shadow-sticky), inset 0 1px 0 rgba(255,255,255,.4);
+/* S0 のマスコット（円メダリオン）。難しい題材の緊張を和らげる製品プレビュー。 */
+.ob-mascot {
+  display: block; margin: 0 auto var(--space-sm); border-radius: var(--radius-pill);
+  box-shadow: 0 8px 22px rgba(60,45,28,.16), 0 0 0 3px rgba(255,255,255,.7);
+  animation: popIn var(--motion-emphasis) var(--ease-out) both;
 }
-.ob-chip.c-event { background: var(--es-event); transform: rotate(-7deg); }
-.ob-chip.c-command { background: var(--es-command); transform: rotate(3deg); }
-.ob-chip.c-policy { background: var(--es-policy); transform: rotate(-3deg); }
 .ob-kicker { font-size: var(--fs-caption); letter-spacing: var(--ls-wide); color: var(--accent); font-weight: 800; }
 .ob-title { font-size: var(--fs-display); font-weight: 900; margin: var(--space-sm) 0 var(--space-2xs); line-height: 1.25; }
 .ob-sub { font-size: var(--fs-body); margin: 0 auto var(--space-md); max-width: 320px; color: var(--ink-muted); }
@@ -593,7 +598,7 @@
 .ob-replay { font-size: var(--fs-caption); color: var(--ink-muted); text-align: center; margin-top: var(--space-xs); }
 
 @media (prefers-reduced-motion: reduce) {
-  .ob-slot.pulse, .ob-reveal { animation: none !important; }
+  .ob-slot.pulse, .ob-reveal, .ob-mascot { animation: none !important; }
 }
 
 /* ===== 個人ワーク（サンドボックス）===== */
