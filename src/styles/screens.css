@@ -544,8 +544,23 @@
 .sandbox-work-del { padding: 0 var(--space-sm); color: var(--ink-muted); cursor: pointer; }
 .sandbox-hub-note { margin-top: var(--space-lg); }
 
-.sandbox-editor-head { display: flex; align-items: center; gap: var(--space-sm); margin-bottom: var(--space-md); }
-.sandbox-editor-head .sandbox-editor-title { flex: 1; font-size: var(--fs-heading); }
+/* 狭幅で 戻る + タイトル + 書き出し が一行に収まらないと、flex がタイトル列を
+   1文字幅まで潰して縦書きに崩れる。タイトルは min-width:0 + 省略、書き出しは
+   折り返して次行へ落とす（戻るとタイトルは必ず先頭行に残す）。 */
+.sandbox-editor-head {
+  display: flex; align-items: center; gap: var(--space-sm);
+  flex-wrap: wrap; margin-bottom: var(--space-md);
+}
+.sandbox-editor-head .back { flex: none; }
+.sandbox-editor-head .sandbox-editor-title {
+  flex: 1 1 auto; min-width: 0; font-size: var(--fs-heading);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.sandbox-editor-head .sandbox-export { flex: none; margin-left: auto; }
+@media (max-width: 480px) {
+  /* タイトルが長いと書き出しが先頭行から落ちる。落ちたら横幅いっぱいに広げる。 */
+  .sandbox-editor-head .sandbox-export { margin-left: 0; }
+}
 .sandbox-editor-body { display: flex; flex-direction: column; gap: var(--space-md); }
 
 .sandbox-palette { display: flex; flex-direction: column; gap: var(--space-sm); }
