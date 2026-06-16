@@ -36,15 +36,13 @@ function AppBar() {
   const { state, dispatch } = useStore()
   const onHome = state.screen === 'home' || state.screen === 'onboarding'
   return (
-    <header className="appbar">
-      {!onHome ? (
+    <header className={`appbar ${onHome ? 'is-home' : ''}`}>
+      {/* ホーム/オンボでは戻るボタンが無いので、タイトルを左端に寄せる
+          （非ホームは戻るボタンと対になるよう中央寄せ） */}
+      {!onHome && (
         <button className="back" onClick={() => dispatch({ type: 'goHome' })} aria-label="ホームに戻る">
           <Icon name="back" size={20} />
         </button>
-      ) : (
-        <span className="back" style={{ visibility: 'hidden' }} aria-hidden>
-          <Icon name="back" size={20} />
-        </span>
       )}
       <span className="title">
         <span className="app">StormQuest</span>

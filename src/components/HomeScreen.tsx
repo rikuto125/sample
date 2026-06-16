@@ -128,7 +128,7 @@ export function HomeScreen() {
                       )}
                     </span>
                     {isCurrent && (
-                      <MascotImage mood="idea" size={72} small className="path-mascot" />
+                      <MascotImage mood="wave" size={108} small className="path-mascot" />
                     )}
                   </li>
                 )

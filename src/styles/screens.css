@@ -118,15 +118,15 @@
   border-top: 7px solid var(--board);
 }
 
-/* マスコット（写真メダリオン）は現在ノードの脇に。ノードの傾きと逆側に置いて重なりを避ける。
-   狭幅（390px）で枠外に見切れないよう、オフセットはノード幅に収め画面端に出さない。 */
+/* マスコット（全身・手振り）は現在ノードの脇で応援する。ノードの傾きと逆側に置いて重なりを避ける。
+   全身は透過 PNG なのでメダリオンの縁は付けない。狭幅(390px)で枠外に見切れないよう、
+   ノードにわずかに重ねる程度の小さいオフセットに留める（画面端には出さない）。 */
 .path-mascot {
-  position: absolute; bottom: -6px; pointer-events: none;
-  border-radius: var(--radius-pill);
-  box-shadow: 0 5px 12px rgba(60,45,28,.18), 0 0 0 2px rgba(255,255,255,.7);
+  position: absolute; bottom: 0; pointer-events: none; z-index: 1;
+  filter: drop-shadow(0 6px 8px rgba(60,45,28,.22));
 }
-.path-row.lean-left .path-mascot { right: -34px; }
-.path-row.lean-right .path-mascot { left: -34px; }
+.path-row.lean-left .path-mascot { right: -6px; }
+.path-row.lean-right .path-mascot { left: -6px; }
 
 @keyframes nodeBob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
 @keyframes flagBob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }

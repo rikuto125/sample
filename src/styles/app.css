@@ -87,6 +87,8 @@ button { font-family: inherit; cursor: pointer; }
   color: #fff;
 }
 .appbar .title { font-weight: 800; letter-spacing: var(--ls-wide); flex: 1; min-width: 0; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* ホーム/オンボは戻るボタンが無いのでタイトルを左端へ。 */
+.appbar.is-home .title { text-align: left; }
 .appbar .title .app { color: #fff; }
 /* 戻るはアイコンのみの丸ボタン（テキスト「ホーム」は幅を食い、狭幅でタイトルを欠けさせるため） */
 .appbar .back {
