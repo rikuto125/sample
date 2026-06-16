@@ -4,7 +4,7 @@ import { useStore } from '../store'
 import { totalStars } from '../game/progress'
 import { track } from '../game/analytics'
 import { Icon } from './Icon'
-import { Mascot } from './Mascot'
+import { MascotImage } from './MascotImage'
 import { Confetti } from './Confetti'
 import { soundEngine as sound } from '../game/sound'
 
@@ -20,7 +20,7 @@ export function CompleteScreen() {
   }, [])
 
   function share() {
-    const text = `StormQuest 全章クリア！ ピザデリバリーとタスク管理で EventStorming の記法（集約・不変条件まで）を ${vocabCount}語マスター・${stars}/${maxStars}★`
+    const text = `StormQuest 全章クリア！ EventStorming の記法から集約・不変条件・集約をまたぐ整合性・補償/Saga・イベント粒度・リードモデル/CQRS まで ${vocabCount}語マスター・${stars}/${maxStars}★`
     const url = 'https://rikuto125.github.io/sample/'
     // クリック=意図を計測（成功 callback は端末依存なので追わない）。北極星=シェア率。
     const canWebShare = 'share' in navigator
@@ -43,15 +43,15 @@ export function CompleteScreen() {
     <div className="screen complete screen-dark celebrate">
       <Confetti />
       <div className="finish-celebrate">
-        <Mascot mood="cheer" size={96} className="finish-mascot" />
+        <MascotImage mood="wink" size={104} className="finish-mascot-img" />
         <div className="finish-emoji">
           <Icon name="trophy" size={56} strokeWidth={1.75} />
         </div>
       </div>
       <div className="result-title">全章 完全制覇！</div>
       <p className="finish-lead">
-        ドメインイベント・コマンド・アクター・ポリシー・外部システム・リードモデル、
-        そして<strong>集約と不変条件</strong>——
+        記法7種（イベント・コマンド・アクター・ポリシー・外部システム・リードモデル・集約）から、
+        <strong>不変条件・集約をまたぐ整合性・補償／Saga・イベント粒度・リードモデル／CQRS</strong>まで——
         EventStormingとDDDをつなぐ記法と語彙を、手が覚えました。
       </p>
 
