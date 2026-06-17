@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { StoreProvider, useStore } from './store'
 import { totalStars } from './game/progress'
 import { soundEngine } from './game/sound'
@@ -58,6 +58,12 @@ function AppBar() {
 
 function Router() {
   const { state } = useStore()
+  // 画面はルーティングでなく state.screen の差し替えなので、ドキュメントの
+  // スクロール位置が前画面のまま引き継がれる（下にスクロール→完了画面が下のまま）。
+  // 画面が変わるたびに先頭へ戻す。
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [state.screen])
   switch (state.screen) {
     case 'onboarding':
       return <Onboarding />
