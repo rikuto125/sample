@@ -449,6 +449,12 @@
   box-shadow: 0 8px 24px rgba(12, 43, 41, 0.45), 0 0 0 3px rgba(255, 255, 255, 0.16);
   animation: popIn var(--motion-emphasis) var(--ease-out) both;
 }
+/* ★1 の励まし（全身・しょんぼり）。透過 PNG なので縁は付けず落ち影のみ。 */
+.result-mascot-full {
+  display: block; margin: 0 auto calc(-1 * var(--space-xs));
+  filter: drop-shadow(0 8px 12px rgba(12, 43, 41, 0.4));
+  animation: popIn var(--motion-emphasis) var(--ease-out) both;
+}
 
 /* ポップイン（弾む登場）。reduced-motion で無効化 */
 @keyframes popIn {
@@ -470,7 +476,7 @@
   100% { transform: translateY(120vh) rotate(var(--rot, 360deg)); opacity: 0; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .result-mascot-img, .finish-mascot-img, .finish-emoji { animation: none !important; }
+  .result-mascot-img, .result-mascot-full, .finish-mascot-img, .finish-emoji { animation: none !important; }
   .confetti { display: none !important; }
 }
 .finish-stats { display: flex; justify-content: center; gap: var(--space-xl); margin-bottom: var(--space-lg); }

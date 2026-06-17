@@ -2,15 +2,15 @@
 // 盤面の記法アイコンには使わない（色＋lucide＋ラベルの三重冗長を崩さない）。
 // 画像は public/brand/ にあり、base 込みで解決する。
 
-export type MascotImageMood = 'wink' | 'idea' | 'wave' | 'stand'
+export type MascotImageMood = 'wink' | 'idea' | 'wave' | 'stand' | 'sad'
 
 // 全身（縦長）は高さ基準で表示する。円メダリオン（正方形）は size×size。
-const FULL_BODY = new Set<MascotImageMood>(['wave', 'stand'])
+const FULL_BODY = new Set<MascotImageMood>(['wave', 'stand', 'sad'])
 // 全身画像の実アスペクト比（width / height）。歪ませないため width を算出する。
 const FULL_ASPECT = 278 / 320
 
 interface MascotImageProps {
-  /** wink=祝福 ・ idea=ひらめき ・ wave=手振り(全身) ・ stand=立ち(全身) */
+  /** wink=祝福 ・ idea=ひらめき ・ wave=手振り(全身) ・ stand=立ち(全身) ・ sad=しょんぼり(全身) */
   mood?: MascotImageMood
   /** メダリオンは一辺、全身は高さ */
   size?: number

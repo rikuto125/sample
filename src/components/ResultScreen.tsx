@@ -27,7 +27,12 @@ export function ResultScreen() {
 
   return (
     <div className="screen result screen-dark">
-      <MascotImage mood="wink" size={96} className="result-mascot-img" />
+      {/* ★3/★2 は祝福(wink メダリオン)、★1 は前向きな励まし(sad 全身)。叱責にしない。 */}
+      {stars >= 2 ? (
+        <MascotImage mood="wink" size={96} className="result-mascot-img" />
+      ) : (
+        <MascotImage mood="sad" size={120} className="result-mascot-full" />
+      )}
       <div className="result-title">STAGE CLEAR!</div>
       <div className="stars-big" aria-label={`${stars}つ星`}>
         {Array.from({ length: 3 }, (_, i) =>
