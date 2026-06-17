@@ -128,6 +128,18 @@
 .path-row.lean-left .path-mascot { right: -6px; }
 .path-row.lean-right .path-mascot { left: -6px; }
 
+/* 全クリア時、道の終点に立つゴールのキャラ＋帯（達成感を出す）。 */
+.path-goal { display: flex; flex-direction: column; align-items: center; gap: var(--space-2xs); margin: var(--space-md) 0 var(--space-lg); }
+.path-goal-mascot { filter: drop-shadow(0 8px 12px rgba(60,45,28,.22)); animation: nodeBob 2s var(--ease-out) infinite; }
+.path-goal-flag {
+  display: inline-flex; align-items: center;
+  background: var(--reward); color: #3d2b09;
+  font-size: var(--fs-body-sm); font-weight: 900; letter-spacing: .03em;
+  padding: 5px 16px; border-radius: var(--radius-pill);
+  box-shadow: 0 3px 0 var(--reward-ink), 0 4px 8px rgba(60,45,28,.16);
+}
+@media (prefers-reduced-motion: reduce) { .path-goal-mascot { animation: none !important; } }
+
 @keyframes nodeBob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
 @keyframes flagBob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
 @media (prefers-reduced-motion: reduce) {

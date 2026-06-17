@@ -140,6 +140,14 @@ export function HomeScreen() {
         )
       })}
 
+      {/* 全クリア時は道の終点にゴールのキャラを立たせる（祝福＋達成感）。 */}
+      {allDone && (
+        <div className="path-goal">
+          <MascotImage mood="wave" size={132} className="path-goal-mascot" />
+          <span className="path-goal-flag">全ステージ クリア！</span>
+        </div>
+      )}
+
       <button
         className="btn-primary"
         onClick={() => startStage(allDone ? 0 : startIdx)}
