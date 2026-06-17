@@ -419,25 +419,23 @@
 
 /* ===== Complete ===== */
 .complete { position: relative; overflow: hidden; }
-.finish-celebrate { display: flex; align-items: flex-end; justify-content: center; gap: var(--space-sm); margin-top: var(--space-md); }
-/* 写真調マスコット（円メダリオン）。完走の山場にだけ出す。
-   ダーク地に映えるよう淡い縁＋落ち影、登場は popIn（reduced-motion で無効）。 */
 .mascot-image { display: block; }
-.finish-mascot-img {
-  border-radius: var(--radius-pill);
-  box-shadow: 0 10px 30px rgba(12, 43, 41, 0.5), 0 0 0 3px rgba(255, 255, 255, 0.16);
-  animation: popIn var(--motion-emphasis) var(--ease-out) both;
+/* 完走の主役＝マスコット（手振り全身）。トロフィーはやめ、金のハローで達成感を出す。 */
+.finish-celebrate {
+  position: relative;
+  display: flex; align-items: flex-end; justify-content: center;
+  margin-top: var(--space-md); min-height: 196px;
 }
-.finish-emoji {
-  display: inline-flex; align-items: center; justify-content: center;
-  width: 88px; height: 88px; margin: 0 0 var(--space-2xs);
-  border-radius: var(--radius-pill);
-  /* ヒーローと同じ grad-joy を使い回さず、放射状＋金リングで“達成”固有の見た目に */
-  background: radial-gradient(circle at 50% 38%, #2aa3a3, var(--accent-dark));
-  color: #fff;
-  box-shadow: 0 14px 40px rgba(12, 43, 41, 0.5), 0 0 0 6px rgba(200, 146, 46, 0.3),
-    inset 0 2px 0 rgba(255, 255, 255, 0.35);
-  animation: popIn var(--motion-emphasis) var(--ease-out) 80ms both;
+.finish-halo {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  width: 230px; height: 230px; border-radius: 50%; pointer-events: none;
+  /* 達成の金ハロー（放射状）。射幸的に光らせず、静かな後光に留める。 */
+  background: radial-gradient(circle, rgba(200,146,46,.32), rgba(200,146,46,0) 68%);
+}
+.finish-mascot-full {
+  position: relative;
+  filter: drop-shadow(0 14px 24px rgba(12, 43, 41, 0.5));
+  animation: popIn var(--motion-emphasis) var(--ease-out) both;
 }
 .finish-lead { opacity: .92; margin: var(--space-sm) auto var(--space-lg); max-width: 360px; }
 
@@ -476,7 +474,7 @@
   100% { transform: translateY(120vh) rotate(var(--rot, 360deg)); opacity: 0; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .result-mascot-img, .result-mascot-full, .finish-mascot-img, .finish-emoji { animation: none !important; }
+  .result-mascot-img, .result-mascot-full, .finish-mascot-full { animation: none !important; }
   .confetti { display: none !important; }
 }
 .finish-stats { display: flex; justify-content: center; gap: var(--space-xl); margin-bottom: var(--space-lg); }

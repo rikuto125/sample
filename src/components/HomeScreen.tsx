@@ -18,7 +18,9 @@ export function HomeScreen() {
   const total = STAGES.length
   // 連続ロック: 最初の未クリアステージまで解放
   const firstUncleared = STAGES.findIndex((s) => progress.stars[s.id] == null)
-  const startIdx = firstUncleared < 0 ? 0 : firstUncleared
+  // 全クリア時は「現在ノード」を持たない（最初のステージに ここから/マスコットを誤って出さない）
+  const allDone = firstUncleared < 0
+  const startIdx = allDone ? -1 : firstUncleared
   const totalStarCount = Object.values(progress.stars).reduce((a, b) => a + b, 0)
 
   // stageId -> 全体での index（ロック判定に使う）
@@ -138,11 +140,14 @@ export function HomeScreen() {
         )
       })}
 
-      <button className="btn-primary" onClick={() => startStage(startIdx)}>
-        {done === 0 ? 'はじめる' : done >= total ? 'もう一度挑戦' : 'つづきから'}
+      <button
+        className="btn-primary"
+        onClick={() => startStage(allDone ? 0 : startIdx)}
+      >
+        {done === 0 ? 'はじめる' : allDone ? 'もう一度挑戦' : 'つづきから'}
       </button>
 
-      {done >= total && (
+      {allDone && (
         <button className="btn-ghost" onClick={() => dispatch({ type: 'goComplete' })}>
           <Icon name="trophy" size={18} /> 完走画面を見る
         </button>

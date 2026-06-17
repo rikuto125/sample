@@ -42,11 +42,10 @@ export function CompleteScreen() {
   return (
     <div className="screen complete screen-dark celebrate">
       <Confetti />
+      {/* トロフィーはやめ、マスコット（手振り全身）を主役に。金のハローで達成感を出す。 */}
       <div className="finish-celebrate">
-        <MascotImage mood="wink" size={104} className="finish-mascot-img" />
-        <div className="finish-emoji">
-          <Icon name="trophy" size={56} strokeWidth={1.75} />
-        </div>
+        <span className="finish-halo" aria-hidden />
+        <MascotImage mood="wave" size={184} className="finish-mascot-full" />
       </div>
       <div className="result-title">全章 完全制覇！</div>
       <p className="finish-lead">
