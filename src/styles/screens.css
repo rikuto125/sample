@@ -436,10 +436,11 @@
 .finish-celebrate {
   position: relative;
   display: flex; align-items: flex-end; justify-content: center;
-  margin-top: var(--space-md); min-height: 196px;
+  /* 上に余白を確保。popIn の 1.12 拡大でも頭（！付箋）が画面上端で切れないように。 */
+  margin-top: var(--space-md); min-height: 220px; padding-top: var(--space-md);
 }
 .finish-halo {
-  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  position: absolute; top: calc(50% + var(--space-xs)); left: 50%; transform: translate(-50%, -50%);
   width: 230px; height: 230px; border-radius: 50%; pointer-events: none;
   /* 達成の金ハロー（放射状）。射幸的に光らせず、静かな後光に留める。 */
   background: radial-gradient(circle, rgba(200,146,46,.32), rgba(200,146,46,0) 68%);
@@ -447,6 +448,8 @@
 .finish-mascot-full {
   position: relative;
   filter: drop-shadow(0 14px 24px rgba(12, 43, 41, 0.5));
+  /* 足元を軸に弾ませる＝頭が上へ飛び出して切れない。 */
+  transform-origin: 50% 100%;
   animation: popIn var(--motion-emphasis) var(--ease-out) both;
 }
 .finish-lead { opacity: .92; margin: var(--space-sm) auto var(--space-lg); max-width: 360px; }
